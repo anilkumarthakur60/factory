@@ -1,6 +1,6 @@
 # @anil-labs/factory
 
-Laravel-inspired model factories + a seedable, locale-aware faceted faker for TypeScript. **Zero runtime dependencies.** ESM + CJS. Browser, Node 18+, Bun, Deno.
+Laravel-inspired model factories + a seedable, locale-aware faceted faker for TypeScript. **Zero runtime dependencies.** ESM + CJS. Browser, Node 20+, Bun, Deno.
 
 ```bash
 npm i @anil-labs/factory
