@@ -35,10 +35,15 @@ export default defineConfig({
         // Floor matches today's real numbers (rounded down with a 1-2% buffer
         // for natural drift between runs). Ratchet up whenever new tests land
         // — never down. CI fails if we drop below.
-        lines: 93,
-        statements: 91,
-        functions: 95,
-        branches: 77,
+        //
+        // The remaining gaps are unreachable defensive guards (`if (x ===
+        // undefined) continue` / `throw`) we added to remove non-null
+        // assertions. They can't fire without invalid input, so we don't
+        // chase 100%.
+        lines: 98,
+        statements: 97,
+        functions: 99,
+        branches: 87,
       },
     },
   },

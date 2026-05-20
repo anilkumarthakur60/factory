@@ -1,5 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Faker, consolePersist, getLocale, listLocales, registerLocale } from '@'
+import {
+  Collection,
+  Faker,
+  Mulberry32,
+  consolePersist,
+  defineFactory,
+  getLocale,
+  httpPersist,
+  listLocales,
+  memoryPersist,
+  registerLocale,
+} from '@'
 import type { LocaleData } from '@'
 
 // All tests share a fixed seed so failures pinpoint a real regression, not a
@@ -489,6 +500,336 @@ describe('consolePersist', () => {
     void consolePersist<{ x: 1 }>()({ x: 1 })
     expect(spy).toHaveBeenCalled()
     spy.mockRestore()
+  })
+})
+
+describe('faker.color (uncovered methods)', () => {
+  const f = faker()
+
+  it('name returns a non-empty colour name', () => {
+    expect(f.color.name()).toMatch(/\S/)
+  })
+})
+
+describe('faker.lorem (uncovered methods)', () => {
+  const f = faker()
+
+  it('text is an alias of paragraph', () => {
+    expect(f.lorem.text()).toMatch(/\S/)
+  })
+
+  it('words / paragraphs return non-empty strings', () => {
+    expect(f.lorem.words(5).split(' ')).toHaveLength(5)
+    expect(f.lorem.paragraphs(2).split('\n\n')).toHaveLength(2)
+  })
+})
+
+describe('faker.internet (uncovered methods)', () => {
+  const f = faker()
+
+  it('userName returns a lowercase identifier', () => {
+    const name = f.internet.userName()
+    expect(name).toMatch(/^[a-z0-9._]+$/)
+  })
+
+  it('email accepts custom firstName/lastName', () => {
+    const email = f.internet.email({ firstName: 'Anil', lastName: 'Thakur' })
+    expect(email.toLowerCase()).toContain('anil')
+    expect(email.toLowerCase()).toContain('thakur')
+  })
+
+  it('domainName / url / ipv4 / ipv6 / mac / password produce well-formed values', () => {
+    expect(f.internet.domainName()).toMatch(/^[a-z]+\.[a-z]+$/i)
+    expect(f.internet.url()).toMatch(/^https:\/\/(www|app|api|blog|docs)\.[a-z]+\.[a-z]+$/i)
+    expect(f.internet.ipv4()).toMatch(/^\d{1,3}(\.\d{1,3}){3}$/)
+    expect(f.internet.ipv6()).toMatch(/^([0-9a-f]{4}:){7}[0-9a-f]{4}$/)
+    expect(f.internet.mac()).toMatch(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/)
+    expect(f.internet.password(16)).toHaveLength(16)
+  })
+})
+
+describe('faker.number (uncovered methods)', () => {
+  const f = faker()
+
+  it('int / float / between honour their ranges', () => {
+    const i = f.number.int({ min: 5, max: 10 })
+    expect(i).toBeGreaterThanOrEqual(5)
+    expect(i).toBeLessThanOrEqual(10)
+    const fl = f.number.float({ min: 0, max: 1, decimals: 3 })
+    expect(fl).toBeGreaterThanOrEqual(0)
+    expect(fl).toBeLessThanOrEqual(1)
+    const b = f.number.between(1, 5)
+    expect(b).toBeGreaterThanOrEqual(1)
+    expect(b).toBeLessThanOrEqual(5)
+  })
+
+  it('bigInt returns a bigint inside [min, max]', () => {
+    const v = f.number.bigInt({ min: 0n, max: 1000n })
+    expect(typeof v).toBe('bigint')
+    expect(v).toBeGreaterThanOrEqual(0n)
+    expect(v).toBeLessThanOrEqual(1000n)
+  })
+
+  it('bigInt with defaults', () => {
+    expect(typeof f.number.bigInt()).toBe('bigint')
+  })
+
+  it('bigInt throws when max < min', () => {
+    expect(() => f.number.bigInt({ min: 10n, max: 0n })).toThrow(/max < min/)
+  })
+})
+
+describe('Factory — additional paths', () => {
+  it('times(n) is an alias for count(n)', () => {
+    const F = defineFactory<{ id: number }>(({ seq }) => ({ id: seq }))
+    expect(F.times(3).makeMany()).toHaveLength(3)
+  })
+
+  it('raw() returns the same shape as make()', () => {
+    const F = defineFactory<{ id: number }>(({ seq }) => ({ id: seq }))
+    expect(F.raw()).toEqual({ id: 1 })
+    expect(F.count(2).raw()).toEqual([{ id: 1 }, { id: 2 }])
+  })
+
+  it('for(parentFactory) and for(parentObject) and for(parentThunk) all set the foreign key', () => {
+    interface Parent {
+      id: number
+    }
+    interface Child {
+      id: number
+      parentId: number
+    }
+    const ParentF = defineFactory<Parent>(({ seq }) => ({ id: seq }))
+    const ChildF = defineFactory<Child>(({ seq }) => ({ id: seq, parentId: 0 }))
+
+    // 1) parent as Factory
+    expect(ChildF.for(ParentF, 'parentId').makeOne().parentId).toBe(1)
+    // 2) parent as plain object
+    expect(ChildF.for({ id: 42 }, 'parentId').makeOne().parentId).toBe(42)
+    // 3) parent as thunk
+    expect(ChildF.for(() => ({ id: 99 }), 'parentId').makeOne().parentId).toBe(99)
+  })
+
+  it('locale(name) on a factory creates an isolated faker', () => {
+    interface U {
+      name: string
+    }
+    const F = defineFactory<U>(({ faker }) => ({ name: faker.person.firstName() }))
+    // Just verify the chain works — switching back to 'en' is a no-op.
+    expect(typeof F.locale('en').makeOne().name).toBe('string')
+  })
+
+  it('seed(n) gives reproducible output regardless of default-faker state', () => {
+    const F = defineFactory<{ name: string }>(({ faker }) => ({
+      name: faker.person.firstName(),
+    }))
+    const a = F.seed(7).makeOne()
+    const b = F.seed(7).makeOne()
+    expect(a).toEqual(b)
+  })
+})
+
+describe('Collection — uncovered branches', () => {
+  it('sortBy treats equal values as equal (returns 0)', () => {
+    const c = new Collection([
+      { id: 1, n: 5 },
+      { id: 2, n: 5 },
+      { id: 3, n: 5 },
+    ])
+    // All elements equal under `n` → order preserved.
+    expect(c.sortBy('n').pluck('id').toArray()).toEqual([1, 2, 3])
+  })
+
+  it('sortBy descending', () => {
+    const c = new Collection([{ n: 1 }, { n: 3 }, { n: 2 }])
+    expect(c.sortBy('n', 'desc').pluck('n').toArray()).toEqual([3, 2, 1])
+  })
+})
+
+describe('memoryPersist — uncovered branches', () => {
+  it('find(id) returns undefined for unknown ids', () => {
+    const store = memoryPersist<{ id?: number; name: string }>()
+    void store({ name: 'a' })
+    expect(store.find(999)).toBeUndefined()
+  })
+
+  it('preserves an item.id that was already present', () => {
+    const store = memoryPersist<{ id?: number; name: string }>()
+    const out = store({ id: 42, name: 'preset' }) as { id: number }
+    expect(out.id).toBe(42)
+  })
+})
+
+describe('httpPersist — error paths', () => {
+  it('throws when no fetch is available', async () => {
+    // Force global fetch to look absent via a fresh closure with no fetch arg.
+    const original = (globalThis as { fetch?: unknown }).fetch
+    ;(globalThis as { fetch?: unknown }).fetch = undefined
+    try {
+      const persist = httpPersist<{ id: number }>('/x')
+      await expect(persist({ id: 1 })).rejects.toThrow(/No global `fetch`/)
+    } finally {
+      ;(globalThis as { fetch?: unknown }).fetch = original
+    }
+  })
+
+  it('safeRead catches text() failure with a placeholder', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({}),
+        text: () => Promise.reject(new Error('boom')),
+      }),
+    )
+    const persist = httpPersist<{ id: number }>('/x', { fetch: fetchMock })
+    await expect(persist({ id: 1 })).rejects.toThrow(/<unreadable body>/)
+  })
+})
+
+describe('Factory afterMaking — async hook rejection is swallowed', () => {
+  it('does not crash when a sync make() path hook returns a rejecting Promise', async () => {
+    const F = defineFactory<{ id: number }>(({ seq }) => ({ id: seq })).afterMaking(() =>
+      Promise.reject(new Error('hook boom')),
+    )
+    // make() is sync — the rejecting promise is fire-and-forget.
+    expect(() => F.makeOne()).not.toThrow()
+    // Let the swallowed rejection settle so it doesn't leak into the next test.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0))
+  })
+})
+
+describe('faker.lorem — empty-word edge case', () => {
+  const f = faker()
+
+  it('words(0) returns an empty string (exercises capitalize empty-string branch)', () => {
+    expect(f.lorem.words(0)).toBe('')
+    // sentence(0) capitalises an empty-string base and appends a period.
+    expect(f.lorem.sentence(0)).toBe('.')
+  })
+})
+
+describe('faker.number — defaults branch', () => {
+  const f = faker()
+
+  it('int() and float() work with no opts', () => {
+    expect(typeof f.number.int()).toBe('number')
+    const fl = f.number.float()
+    expect(fl).toBeGreaterThanOrEqual(0)
+    expect(fl).toBeLessThanOrEqual(1)
+  })
+})
+
+describe('faker.regex — anchors, lazy quantifiers, dot, literals', () => {
+  const f = faker()
+
+  it('anchors ^ and $ are treated as zero-width', () => {
+    expect(f.helpers.fromRegExp(/^abc$/)).toBe('abc')
+  })
+
+  it('lazy quantifier modifier `*?` is ignored, behaves like greedy', () => {
+    expect(f.helpers.fromRegExp(/a*?/)).toMatch(/^a*$/)
+  })
+
+  it('lazy quantifier modifier `{2,4}?` is ignored', () => {
+    const v = f.helpers.fromRegExp(/a{2,4}?/)
+    expect(v.length).toBeGreaterThanOrEqual(2)
+    expect(v.length).toBeLessThanOrEqual(4)
+  })
+
+  it('. (dot) yields a single word-class character or space', () => {
+    expect(f.helpers.fromRegExp(/./)).toMatch(/^[\w ]$/)
+  })
+
+  it('literal escaped char (e.g. \\.) returns the literal', () => {
+    expect(f.helpers.fromRegExp(/\./)).toBe('.')
+  })
+})
+
+describe('faker.regex — negated escape character classes', () => {
+  const f = faker()
+
+  it('\\D yields a non-digit', () => {
+    expect(f.helpers.fromRegExp(/\D/)).toMatch(/^[^0-9]$/)
+  })
+
+  it('\\W yields a non-word character', () => {
+    expect(f.helpers.fromRegExp(/\W/)).toMatch(/^\W$/)
+  })
+
+  it('\\S yields a non-whitespace character', () => {
+    expect(f.helpers.fromRegExp(/\S/)).toMatch(/^\S$/)
+  })
+
+  it('escape inside a character class — [\\d]+ yields digits', () => {
+    expect(f.helpers.fromRegExp(/[\d]+/)).toMatch(/^\d+$/)
+  })
+
+  it('literal char inside a character class — [abc]+', () => {
+    expect(f.helpers.fromRegExp(/[abc]+/)).toMatch(/^[abc]+$/)
+  })
+})
+
+describe('Mulberry32 — direct PRNG paths', () => {
+  it('int(max, min) swaps reversed arguments', () => {
+    const p = new Mulberry32(42)
+    const v = p.int(10, 1)
+    expect(v).toBeGreaterThanOrEqual(1)
+    expect(v).toBeLessThanOrEqual(10)
+  })
+
+  it('constructed with no seed picks a non-zero time-based seed', () => {
+    const a = new Mulberry32()
+    expect(a.currentSeed).toBeGreaterThan(0)
+  })
+
+  it('constructed with NaN falls back to a random seed', () => {
+    const a = new Mulberry32(Number.NaN)
+    expect(a.currentSeed).toBeGreaterThan(0)
+  })
+
+  it('seed(0) maps to the golden-ratio constant (never literal zero state)', () => {
+    const p = new Mulberry32(0)
+    expect(p.currentSeed).toBe(0x9e3779b9)
+  })
+})
+
+describe('Factory — recycle + getRecycled', () => {
+  it('recycle(models, key) and getRecycled(key) round-trip', () => {
+    interface User {
+      id: number
+    }
+    const F = defineFactory<User>(({ seq }) => ({ id: seq }))
+    const pool = [{ id: 100 }, { id: 200 }, { id: 300 }]
+    const f2 = F.recycle(pool, 'users')
+    const picked = f2.getRecycled('users')
+    expect(pool).toContain(picked)
+  })
+
+  it('recycle accepts a single model (non-array)', () => {
+    interface User {
+      id: number
+    }
+    const F = defineFactory<User>(({ seq }) => ({ id: seq }))
+    const f2 = F.recycle({ id: 7 }, 'single')
+    expect(f2.getRecycled('single')).toEqual({ id: 7 })
+  })
+
+  it('getRecycled returns undefined for an empty / unknown pool', () => {
+    interface User {
+      id: number
+    }
+    const F = defineFactory<User>(({ seq }) => ({ id: seq }))
+    expect(F.getRecycled('unknown')).toBeUndefined()
+    expect(F.recycle([], 'empty').getRecycled('empty')).toBeUndefined()
+  })
+})
+
+describe('LocaleRef constructor — error path', () => {
+  it('throws when constructed with an unknown locale', () => {
+    // The default LocaleRef('en') always works; force the throw branch with
+    // an unregistered name via the Faker entry-point.
+    expect(() => new Faker({ locale: 'does-not-exist' })).toThrow(/Unknown locale/)
   })
 })
 
