@@ -1,22 +1,50 @@
-tests/
+# NOTE: package.json `files` already acts as an allowlist — only `dist`,
+# `README.md`, `LICENSE`, `CHANGELOG.md` ship to npm. This `.npmignore` is
+# defence-in-depth: if the `files` field is ever removed, these patterns
+# keep the tarball clean.
+
+# Docs (vitepress)
 docs/
+.vitepress/
+
+# Source + tests (consumers only need `dist/`)
+src/
+tests/
 *.test.ts
+
+# Tooling configs
 vitest.config.ts
 vite.config.ts
 tsconfig.json
+tsconfig.build.json
+tsconfig.*.json
 eslint.config.js
+eslint.config.cjs
 .eslintrc*
 .eslintignore
 .eslintcache
 .prettierrc*
 .prettierignore
 .editorconfig
+
+# CI / SCM
 .gitignore
+.gitattributes
 .github/
+
+# Coverage + build cache
 coverage/
-src/
 *.tsbuildinfo
-node_modules/
+.vite/
+
+# Editor / OS
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
+
+# Package output (so `npm pack` artifacts aren't recursively packed)
+*.tgz

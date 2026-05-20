@@ -87,7 +87,8 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "prepublishOnly": "npm run clean && npm run verify && npm run build"
+    "prepublishOnly": "npm run clean && npm run verify && npm run build",
+    "prepack": "node -e \"const f=require('./package.json').files;console.log('\\n[prepack] tarball will include only:',f.join(', '));console.log('[prepack] docs/, src/, tests/, configs are excluded.\\n')\""
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
