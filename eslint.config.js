@@ -1,6 +1,7 @@
 // @ts-check
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
+import perfectionist from 'eslint-plugin-perfectionist'
 import prettierConfig from 'eslint-config-prettier'
 
 export default tseslint.config(
@@ -11,6 +12,7 @@ export default tseslint.config(
       'coverage/**',
       '**/*.tsbuildinfo',
       'docs/.vitepress/**',
+      'scripts/**',
     ],
   },
 
@@ -20,6 +22,7 @@ export default tseslint.config(
 
   {
     files: ['**/*.ts'],
+    plugins: { perfectionist },
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -37,6 +40,8 @@ export default tseslint.config(
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
+      'perfectionist/sort-interfaces': ['warn', { type: 'natural' }],
+      'perfectionist/sort-object-types': ['warn', { type: 'natural' }],
     },
   },
 

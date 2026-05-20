@@ -1,5 +1,5 @@
-import type { Prng } from '../../prng/types'
-import { generateFromRegex } from '../regex'
+import type { Prng } from '../prng/types'
+import { generateFromRegex } from './regex'
 
 export interface WeightedItem<T> {
   /** The value to potentially return. */

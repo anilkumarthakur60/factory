@@ -1,5 +1,7 @@
 import type { LocaleData } from './types'
 
+export type { LocaleData }
+
 /**
  * English (US) locale corpus. The default and the only one shipped — adding
  * locales is a downstream concern via `registerLocale()`.

@@ -1,4 +1,4 @@
-import type { Prng } from '../../prng/types'
+import type { Prng } from '../prng/types'
 
 const DAY_MS = 86_400_000
 

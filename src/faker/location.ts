@@ -1,5 +1,5 @@
-import type { Prng } from '../../prng/types'
-import type { LocaleRef } from '../locale'
+import type { Prng } from '../prng/types'
+import type { LocaleRef } from './locale'
 
 /**
  * Postal-address namespace.

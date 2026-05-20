@@ -10,10 +10,48 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
       "default": "./dist/index.mjs"
+    },
+    "./faker": {
+      "import": {
+        "types": "./dist/faker/index.d.ts",
+        "default": "./dist/faker.mjs"
+      },
+      "require": {
+        "types": "./dist/faker/index.d.cts",
+        "default": "./dist/faker.cjs"
+      },
+      "default": "./dist/faker.mjs"
+    },
+    "./persist": {
+      "import": {
+        "types": "./dist/persist/index.d.ts",
+        "default": "./dist/persist.mjs"
+      },
+      "require": {
+        "types": "./dist/persist/index.d.cts",
+        "default": "./dist/persist.cjs"
+      },
+      "default": "./dist/persist.mjs"
+    },
+    "./locales/en": {
+      "import": {
+        "types": "./dist/locales/en.d.ts",
+        "default": "./dist/locales/en.mjs"
+      },
+      "require": {
+        "types": "./dist/locales/en.d.cts",
+        "default": "./dist/locales/en.cjs"
+      },
+      "default": "./dist/locales/en.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -24,28 +62,32 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "clean": "rm -rf dist coverage",
     "build": "vite build",
-    "build:watch": "vite build --watch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepublishOnly": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "prepublishOnly": "npm run clean && npm run verify && npm run build"
   },
   "devDependencies": {
-    "@eslint/js": "^9.15.0",
-    "@types/node": "^22.0.0",
-    "eslint": "^9.15.0",
-    "eslint-config-prettier": "^9.1.0",
-    "prettier": "^3.3.3",
-    "typescript": "^5.4.0",
-    "typescript-eslint": "^8.15.0",
-    "vite": "^5.4.21",
-    "vite-plugin-dts": "^4.5.4",
-    "vitest": "^2.0.0"
+    "@eslint/js": "^10.0.1",
+    "@microsoft/api-extractor": "^7.58.7",
+    "@types/node": "^25.9.1",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-perfectionist": "^5.7.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4",
+    "vite": "^8.0.13",
+    "vite-plugin-dts": "^5.0.1",
+    "vitest": "^4.1.7"
   },
   "engines": {
     "node": ">=18"

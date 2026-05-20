@@ -1,4 +1,4 @@
-import type { Prng } from '../../prng/types'
+import type { Prng } from '../prng/types'
 
 /**
  * Primitive datatype generators.
