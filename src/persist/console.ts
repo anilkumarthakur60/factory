@@ -1,4 +1,4 @@
-import type { Persist } from '../core/types'
+import type { Persist } from '@/core/types'
 
 /**
  * Logging persistence — prints each item to the console and returns it

@@ -1,4 +1,4 @@
-import type { Faker } from '../faker'
+import type { Faker } from '@/faker'
 
 /** Context passed to definition + state callbacks. */
 export interface BuildContext {

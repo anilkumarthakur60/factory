@@ -1,4 +1,4 @@
-import type { Prng } from '../prng/types'
+import type { Prng } from '@/prng/types'
 
 /**
  * Generate a sample string that matches the given regular-expression pattern.

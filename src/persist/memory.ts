@@ -1,4 +1,4 @@
-import type { Persist } from '../core/types'
+import type { Persist } from '@/core/types'
 
 /**
  * In-memory persistence store. Each call appends to a shared array and

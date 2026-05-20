@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Collection } from '../src'
+import { Collection } from '@'
 
 interface Item {
   id: number

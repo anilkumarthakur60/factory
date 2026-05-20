@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Sequence, sequence } from '../src'
+import { Sequence, sequence } from '@'
 
 describe('Sequence', () => {
   it('cycles values', () => {

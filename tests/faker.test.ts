@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Faker, registerLocale, listLocales } from '../src'
+import { Faker, registerLocale, listLocales } from '@'
 
 describe('Faker', () => {
   it('is reseedable + deterministic', () => {

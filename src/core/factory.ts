@@ -1,4 +1,4 @@
-import { Faker, faker as defaultFaker } from '../faker'
+import { Faker, faker as defaultFaker } from '@/faker'
 import { Collection } from './collection'
 import { Sequence } from './sequence'
 import type { SequenceEntry } from './sequence'

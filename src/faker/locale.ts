@@ -1,5 +1,5 @@
-import type { LocaleData } from '../locales/types'
-import { en } from '../locales/en'
+import type { LocaleData } from '@/locales/types'
+import { en } from '@/locales/en'
 
 /**
  * Live reference to the active locale data. A single instance is shared by

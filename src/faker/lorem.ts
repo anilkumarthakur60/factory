@@ -1,4 +1,4 @@
-import type { Prng } from '../prng/types'
+import type { Prng } from '@/prng/types'
 import type { LocaleRef } from './locale'
 
 /** Capitalise the first character of a string. */

@@ -1,4 +1,4 @@
-import type { Persist } from '../core/types'
+import type { Persist } from '@/core/types'
 
 /** Minimal `fetch`-like interface — works with `fetch`, `axios.request`, etc. */
 type FetchLike = (

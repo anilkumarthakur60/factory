@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { array, faker, maybe, oneOf } from '../src'
+import { array, faker, maybe, oneOf } from '@'
 
 describe('builders', () => {
   it('oneOf picks an element from the array', () => {

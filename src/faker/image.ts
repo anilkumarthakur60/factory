@@ -1,4 +1,4 @@
-import type { Prng } from '../prng/types'
+import type { Prng } from '@/prng/types'
 
 /**
  * Image-URL generators. No bytes are produced — just predictable URLs that

@@ -84,6 +84,11 @@ function sizeBudget(): Plugin {
 }
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': resolve(here, 'src'),
+    },
+  },
   plugins: [
     dts({
       entryRoot: 'src',

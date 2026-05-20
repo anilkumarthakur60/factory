@@ -2,7 +2,7 @@ export { Faker, faker } from './faker'
 export type { FakerOptions } from './faker'
 
 export { LocaleRef, registerLocale, getLocale, listLocales, en } from './locale'
-export type { LocaleData } from '../locales/types'
+export type { LocaleData } from '@/locales/types'
 
 export { generateFromRegex } from './regex'
 

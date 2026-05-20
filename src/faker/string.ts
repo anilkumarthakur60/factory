@@ -1,4 +1,4 @@
-import type { Prng } from '../prng/types'
+import type { Prng } from '@/prng/types'
 
 const ALPHA = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 const NUMERIC = '0123456789'

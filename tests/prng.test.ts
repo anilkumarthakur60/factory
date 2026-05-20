@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Mulberry32, createPrng } from '../src'
+import { Mulberry32, createPrng } from '@'
 
 describe('Mulberry32', () => {
   it('is deterministic from the same seed', () => {

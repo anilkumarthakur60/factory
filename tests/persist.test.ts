@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defineFactory, httpPersist, memoryPersist } from '../src'
+import { defineFactory, httpPersist, memoryPersist } from '@'
 import type { User } from './helpers'
 
 const makeFactory = () =>

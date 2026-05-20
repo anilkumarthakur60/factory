@@ -1,4 +1,4 @@
-import { faker } from '../faker'
+import { faker } from '@/faker'
 
 /**
  * Pick one value from `choices` at call time. Reads from the default faker.

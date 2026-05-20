@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { snapshot } from '../src'
+import { snapshot } from '@'
 
 describe('snapshot()', () => {
   it('normalises Dates to a stable shape', () => {

@@ -39,6 +39,11 @@
     "outDir": "dist",
     "rootDir": ".",
 
+    "paths": {
+      "@": ["./src/index.ts"],
+      "@/*": ["./src/*"]
+    },
+
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "tests/**/*.ts"],

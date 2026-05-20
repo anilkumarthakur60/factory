@@ -1,5 +1,5 @@
-import { createPrng } from '../prng'
-import type { Prng } from '../prng/types'
+import { createPrng } from '@/prng'
+import type { Prng } from '@/prng/types'
 import { LocaleRef } from './locale'
 import { Person } from './person'
 import { Internet } from './internet'
