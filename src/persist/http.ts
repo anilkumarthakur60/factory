@@ -3,19 +3,19 @@ import type { Persist } from '@/core/types'
 /** Minimal `fetch`-like interface — works with `fetch`, `axios.request`, etc. */
 type FetchLike = (
   url: string,
-  init: { method: string; headers: Record<string, string>; body: string },
+  init: { body: string; headers: Record<string, string>; method: string },
 ) => Promise<{
+  json(): Promise<unknown>
   ok: boolean
   status: number
-  json(): Promise<unknown>
   text(): Promise<string>
 }>
 
 export interface HttpPersistOptions {
-  /** Extra HTTP headers — combined with `Content-Type: application/json`. */
-  headers?: Record<string, string>
   /** Custom fetch implementation (defaults to global `fetch`). */
   fetch?: FetchLike
+  /** Extra HTTP headers — combined with `Content-Type: application/json`. */
+  headers?: Record<string, string>
   /**
    * Function that extracts the persisted entity from the HTTP response.
    * Defaults to `(json) => json.data ?? json` to handle both wrapped + flat shapes.
@@ -41,7 +41,11 @@ export interface HttpPersistOptions {
  * ```
  */
 export function httpPersist<T>(url: string, options: HttpPersistOptions = {}): Persist<T> {
-  const doFetch: FetchLike = options.fetch ?? globalThis.fetch
+  // `globalThis.fetch` is typed non-nullable on Node 18+/modern browsers but
+  // genuinely absent on older Node and some edge runtimes. Re-read it through
+  // a `?fetch` shape so TypeScript can see the runtime guard below as live.
+  const globalFetch = (globalThis as { fetch?: FetchLike }).fetch
+  const doFetch: FetchLike | undefined = options.fetch ?? globalFetch
   const parse = options.parse ?? defaultParse
   const headers = {
     'Content-Type': 'application/json',
@@ -62,7 +66,7 @@ export function httpPersist<T>(url: string, options: HttpPersistOptions = {}): P
     })
     if (!response.ok) {
       const body = await safeRead(response)
-      throw new Error(`[httpPersist] POST ${url} → ${response.status}: ${body}`)
+      throw new Error(`[httpPersist] POST ${url} → ${response.status.toString()}: ${body}`)
     }
     const json = (await response.json()) as Record<string, unknown>
     return parse(json) as T

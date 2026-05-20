@@ -2,10 +2,10 @@ import type { Faker } from '@/faker'
 
 /** Context passed to definition + state callbacks. */
 export interface BuildContext {
-  /** One-based item index for this build. */
-  readonly seq: number
   /** Shared faker instance — already seeded if the factory was. */
   readonly faker: Faker
+  /** One-based item index for this build. */
+  readonly seq: number
 }
 
 /** Factory definition: returns the base attributes for a single item. */
@@ -25,18 +25,18 @@ export type Hook<T> = (item: T, index: number) => void | Promise<void>
 
 /** Relation descriptor for `has()`. */
 export interface HasRelation<P, C> {
-  readonly kind: 'has'
-  readonly factory: { make(): C[] } & { count(n: number): { make(): C[] } }
   readonly count: number
+  readonly factory: { make(): C[] } & { count(n: number): { make(): C[] } }
   readonly key: keyof P | string
+  readonly kind: 'has'
 }
 
 /** Relation descriptor for `hasAttached()`. */
 export interface HasAttachedRelation<P, C> {
-  readonly kind: 'hasAttached'
-  readonly factory: { make(): C[] } & { count(n: number): { make(): C[] } }
   readonly count: number
+  readonly factory: { make(): C[] } & { count(n: number): { make(): C[] } }
   readonly key: keyof P | string
+  readonly kind: 'hasAttached'
   readonly pivot:
     | Partial<Record<string, unknown>>
     | ((parent: P, child: C) => Record<string, unknown>)

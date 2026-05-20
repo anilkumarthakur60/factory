@@ -23,19 +23,17 @@ export class Internet {
   email(opts: { firstName?: string; lastName?: string } = {}): string {
     const first = (opts.firstName ?? this.rng.pick(this.locale.data.firstNames)).toLowerCase()
     const last = (opts.lastName ?? this.rng.pick(this.locale.data.lastNames)).toLowerCase()
-    const suffix = this.rng.int(1, 99)
+    const suffix = this.rng.int(1, 99).toString()
     const local = this.rng.pick([`${first}.${last}`, `${first}${last}`, `${first}_${last}`])
-    return `${local}${suffix}@${this.rng.pick(this.locale.data.emailDomains)}`
+    const domain = this.rng.pick(this.locale.data.emailDomains)
+    return `${local}${suffix}@${domain}`
   }
 
   userName(): string {
     const first = this.rng.pick(this.locale.data.firstNames).toLowerCase()
     const last = this.rng.pick(this.locale.data.lastNames).toLowerCase()
-    return this.rng.pick([
-      `${first}.${last}`,
-      `${first}_${last}`,
-      `${first}${this.rng.int(1, 999)}`,
-    ])
+    const numeric = this.rng.int(1, 999).toString()
+    return this.rng.pick([`${first}.${last}`, `${first}_${last}`, `${first}${numeric}`])
   }
 
   /** Bare domain (e.g. `acme.io`). */
@@ -74,7 +72,10 @@ export class Internet {
   password(length = 12): string {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+='
     let out = ''
-    for (let i = 0; i < length; i++) out += chars[this.rng.int(0, chars.length - 1)]
+    for (let i = 0; i < length; i++) {
+      const ch = chars[this.rng.int(0, chars.length - 1)]
+      if (ch !== undefined) out += ch
+    }
     return out
   }
 }

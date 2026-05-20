@@ -88,7 +88,8 @@ describe('Faker', () => {
     const card = f.finance.creditCardNumber()
     expect(card).toHaveLength(16)
     let sum = 0
-    const digits = [...card].map(Number)
+    const digits: number[] = []
+    for (const ch of card) digits.push(Number(ch))
     for (let i = digits.length - 1; i >= 0; i--) {
       let d = digits[i]!
       if ((digits.length - i) % 2 === 0) {

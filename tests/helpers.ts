@@ -1,9 +1,9 @@
 export interface User {
+  active: boolean
+  email: string
   id: number
   name: string
-  email: string
   role: 'admin' | 'editor' | 'viewer'
-  active: boolean
 }
 
 export interface Post {

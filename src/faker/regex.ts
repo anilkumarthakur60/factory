@@ -28,9 +28,15 @@ export function generateFromRegex(pattern: RegExp | string, rng: Prng): string {
 // Character pools
 // ---------------------------------------------------------------------------
 
-const D = [...'0123456789']
-const L = [...'abcdefghijklmnopqrstuvwxyz']
-const U = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
+function charRange(startCode: number, endCode: number): string[] {
+  const out: string[] = []
+  for (let c = startCode; c <= endCode; c++) out.push(String.fromCharCode(c))
+  return out
+}
+
+const D = charRange(0x30, 0x39) // '0'..'9'
+const L = charRange(0x61, 0x7a) // 'a'..'z'
+const U = charRange(0x41, 0x5a) // 'A'..'Z'
 const W = [...D, ...L, ...U, '_']
 const S = [' ', '\t']
 const NW = [' ', '!', '@', '#', '$', '%', '&', '*', '-', '+', '=', ';', ':', ',', '.', '/', '?']
@@ -66,20 +72,20 @@ function expandEscape(ch: string): string[] {
 // ---------------------------------------------------------------------------
 
 interface Quantified {
-  node: Node
-  min: number
   max: number
+  min: number
+  node: Node
 }
 interface SeqNode {
-  kind: 'seq'
   items: Quantified[]
+  kind: 'seq'
 }
 type Node =
   | { kind: 'lit'; value: string }
   | { kind: 'class'; pool: string[] }
   | { kind: 'dot' }
   | SeqNode
-  | { kind: 'alt'; branches: SeqNode[] }
+  | { branches: SeqNode[]; kind: 'alt' }
 
 // ---------------------------------------------------------------------------
 // Parser
@@ -103,7 +109,12 @@ class RegexParser {
       this.pos++
       branches.push(this.parseSeq())
     }
-    return branches.length === 1 ? branches[0]! : { kind: 'alt', branches }
+    if (branches.length === 1) {
+      const only = branches[0]
+      if (only === undefined) throw new Error('[regex] unreachable: empty branches')
+      return only
+    }
+    return { kind: 'alt', branches }
   }
 
   private parseSeq(): SeqNode {
@@ -168,12 +179,17 @@ class RegexParser {
         this.src[this.pos + 2] &&
         this.src[this.pos + 2] !== ']'
       ) {
-        const from = this.src[this.pos]!.charCodeAt(0)
-        const to = this.src[this.pos + 2]!.charCodeAt(0)
-        for (let c = from; c <= to; c++) pool.push(String.fromCharCode(c))
+        const fromCh = this.src[this.pos]
+        const toCh = this.src[this.pos + 2]
+        if (fromCh !== undefined && toCh !== undefined) {
+          const from = fromCh.charCodeAt(0)
+          const to = toCh.charCodeAt(0)
+          for (let c = from; c <= to; c++) pool.push(String.fromCharCode(c))
+        }
         this.pos += 3
       } else {
-        pool.push(this.src[this.pos++]!)
+        const ch = this.src[this.pos++]
+        if (ch !== undefined) pool.push(ch)
       }
     }
     if (this.peek() === ']') this.pos++
@@ -184,7 +200,7 @@ class RegexParser {
     return pool.length > 0 ? pool : ['a']
   }
 
-  private parseQuant(): { min: number; max: number } {
+  private parseQuant(): { max: number; min: number } {
     const ch = this.peek()
     if (ch === '*') {
       this.pos++

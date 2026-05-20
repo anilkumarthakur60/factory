@@ -41,7 +41,9 @@ export class Helpers {
   arrayElements<T>(items: readonly T[], count?: number): T[] {
     const n = count ?? this.rng.int(1, items.length)
     if (n > items.length) {
-      throw new Error(`[Helpers] arrayElements: requested ${n} from ${items.length} items.`)
+      throw new Error(
+        `[Helpers] arrayElements: requested ${n.toString()} from ${items.length.toString()} items.`,
+      )
     }
     return this.shuffle(items).slice(0, n)
   }
@@ -50,8 +52,9 @@ export class Helpers {
     const copy = [...items]
     for (let i = copy.length - 1; i > 0; i--) {
       const j = this.rng.int(0, i)
-      const a = copy[i]!
-      const b = copy[j]!
+      const a = copy[i]
+      const b = copy[j]
+      if (a === undefined || b === undefined) continue
       copy[i] = b
       copy[j] = a
     }
@@ -67,7 +70,9 @@ export class Helpers {
       target -= it.weight
       if (target <= 0) return it.value
     }
-    return items[items.length - 1]!.value
+    const last = items[items.length - 1]
+    if (last === undefined) throw new Error('[Helpers] weightedArrayElement: unreachable')
+    return last.value
   }
 
   /** Build an array of length `length` by calling `fn(index)`. */
@@ -99,7 +104,7 @@ export class Helpers {
     }
     if (out.size < count) {
       throw new Error(
-        `[Helpers] unique: could not produce ${count} unique values after ${budget} attempts (got ${out.size}).`,
+        `[Helpers] unique: could not produce ${count.toString()} unique values after ${budget.toString()} attempts (got ${out.size.toString()}).`,
       )
     }
     return [...out]

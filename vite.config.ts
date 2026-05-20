@@ -61,7 +61,8 @@ function sizeBudget(): Plugin {
       const rows: string[] = []
       let failed = false
       for (const [rel, kb] of sizes) {
-        const limit = SIZE_BUDGETS_KB[rel]!
+        const limit = SIZE_BUDGETS_KB[rel]
+        if (limit === undefined) continue
         const over = (kb as number) > limit
         if (over) failed = true
         rows.push(

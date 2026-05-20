@@ -19,10 +19,10 @@ import { Helpers } from './helpers'
 
 /** Options for constructing a `Faker` instance. */
 export interface FakerOptions {
-  /** Initial PRNG seed. If omitted, a time-based seed is used. */
-  seed?: number
   /** Initial locale name. Defaults to `"en"`. */
   locale?: string
+  /** Initial PRNG seed. If omitted, a time-based seed is used. */
+  seed?: number
 }
 
 /**

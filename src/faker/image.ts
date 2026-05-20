@@ -16,7 +16,8 @@ export class Image {
 
   /** Picsum-photos placeholder URL. */
   url(width = 640, height = 480): string {
-    return `https://picsum.photos/${width}/${height}?random=${this.rng.int(1, 10_000)}`
+    const random = this.rng.int(1, 10_000).toString()
+    return `https://picsum.photos/${width.toString()}/${height.toString()}?random=${random}`
   }
 
   /** ui-avatars.com avatar URL — needs a name to render initials. */

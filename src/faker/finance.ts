@@ -33,7 +33,9 @@ export class Finance {
     // Compute Luhn check digit.
     let sum = 0
     for (let i = digits.length - 1; i >= 0; i--) {
-      let d = digits[i]!
+      const raw = digits[i]
+      if (raw === undefined) continue
+      let d = raw
       if ((digits.length - i) % 2 === 1) {
         d *= 2
         if (d > 9) d -= 9
@@ -51,14 +53,18 @@ export class Finance {
   iban(countryCode = 'GB', length = 22): string {
     let body = ''
     for (let i = 0; i < length - 4; i++) body += this.rng.int(0, 9).toString()
-    return `${countryCode}${this.rng.int(10, 99)}${body}`
+    const checkDigits = this.rng.int(10, 99).toString()
+    return `${countryCode}${checkDigits}${body}`
   }
 
   bitcoinAddress(): string {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789'
     let out = this.rng.pick(['1', '3'])
     const length = this.rng.int(25, 33)
-    for (let i = 1; i < length; i++) out += chars[this.rng.int(0, chars.length - 1)]
+    for (let i = 1; i < length; i++) {
+      const ch = chars[this.rng.int(0, chars.length - 1)]
+      if (ch !== undefined) out += ch
+    }
     return out
   }
 }

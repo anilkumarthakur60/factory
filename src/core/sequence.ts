@@ -1,9 +1,9 @@
 /** Info passed to closure-style sequence entries. */
 export interface SequenceInfo {
-  /** Zero-based index of this draw. */
-  readonly index: number
   /** One-based count (index + 1). */
   readonly count: number
+  /** Zero-based index of this draw. */
+  readonly index: number
 }
 
 /** An entry is either a literal patch or a function receiving the index info. */
@@ -34,7 +34,13 @@ export class Sequence<T extends object = object> {
 
   /** Resolve the next patch, cycling when exhausted. */
   next(): Partial<T> {
-    const entry = this.entries[this.cursor % this.entries.length]!
+    // Constructor guarantees entries.length > 0, so the modular index is
+    // always in-bounds — the `?? throw` is a typesystem narrow, never hit.
+    const entry =
+      this.entries[this.cursor % this.entries.length] ??
+      (() => {
+        throw new Error('[Sequence] unreachable: empty entries')
+      })()
     const info: SequenceInfo = { index: this.cursor, count: this.cursor + 1 }
     this.cursor++
     return typeof entry === 'function' ? entry(info) : entry

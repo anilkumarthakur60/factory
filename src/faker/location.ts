@@ -19,7 +19,10 @@ export class Location {
   ) {}
 
   streetAddress(): string {
-    return `${this.rng.int(100, 9999)} ${this.rng.pick(this.locale.data.streetNames)} ${this.rng.pick(this.locale.data.streetSuffixes)}`
+    const number = this.rng.int(100, 9999).toString()
+    const name = this.rng.pick(this.locale.data.streetNames)
+    const suffix = this.rng.pick(this.locale.data.streetSuffixes)
+    return `${number} ${name} ${suffix}`
   }
 
   city(): string {

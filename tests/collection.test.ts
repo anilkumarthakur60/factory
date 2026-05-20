@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { Collection } from '@'
 
 interface Item {
+  active: boolean
   id: number
   name: string
-  active: boolean
 }
 
 const sample: Item[] = [

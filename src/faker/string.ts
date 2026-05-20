@@ -24,10 +24,9 @@ export class StringGen {
 
   /** RFC-4122 v4 UUID. */
   uuid(): string {
-    const bytes: number[] = []
-    for (let i = 0; i < 16; i++) bytes.push(this.rng.int(0, 255))
-    bytes[6] = (bytes[6]! & 0x0f) | 0x40 // version 4
-    bytes[8] = (bytes[8]! & 0x3f) | 0x80 // RFC 4122 variant
+    const bytes = Array.from({ length: 16 }, () => this.rng.int(0, 255))
+    bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40 // version 4
+    bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80 // RFC 4122 variant
     const hex = bytes.map((b) => b.toString(16).padStart(2, '0')).join('')
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`
   }
@@ -68,7 +67,10 @@ export class StringGen {
 
   private pickFrom(pool: string, length: number): string {
     let out = ''
-    for (let i = 0; i < length; i++) out += pool[this.rng.int(0, pool.length - 1)]
+    for (let i = 0; i < length; i++) {
+      const ch = pool[this.rng.int(0, pool.length - 1)]
+      if (ch !== undefined) out += ch
+    }
     return out
   }
 }

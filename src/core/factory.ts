@@ -18,20 +18,20 @@ import type {
  * perspective while staying simple internally.
  */
 interface InternalState<T extends object> {
-  faker: Faker
-  count: number
-  overrides: Partial<T>
-  states: Map<string, StateValue<T>>
   activeStates: string[]
-  sequences: Sequence<T>[]
-  fieldSequences: Map<keyof T | string, readonly unknown[]>
-  afterMaking: Hook<T>[]
   afterCreating: Hook<T>[]
-  hasRelations: HasRelation<T, object>[]
+  afterMaking: Hook<T>[]
+  count: number
+  faker: Faker
+  fieldSequences: Map<keyof T | string, readonly unknown[]>
   hasAttachedRelations: HasAttachedRelation<T, object>[]
-  recycle: Map<string, readonly object[]>
-  persist: Persist<T> | null
+  hasRelations: HasRelation<T, object>[]
+  overrides: Partial<T>
   ownsFaker: boolean
+  persist: Persist<T> | null
+  recycle: Map<string, readonly object[]>
+  sequences: Sequence<T>[]
+  states: Map<string, StateValue<T>>
 }
 
 /**
@@ -120,7 +120,7 @@ export class Factory<T extends object> {
   /** Set how many items will be built on the next terminal call. */
   count(n: number): Factory<T> {
     if (!Number.isInteger(n) || n < 0) {
-      throw new Error(`[Factory] count(n): expected a non-negative integer, got ${n}.`)
+      throw new Error(`[Factory] count(n): expected a non-negative integer, got ${String(n)}.`)
     }
     return this.clone({ count: n })
   }
@@ -142,9 +142,6 @@ export class Factory<T extends object> {
    *   - One-arg form (`state(name)`) **activates** it.
    *   - One-arg with a Sequence (`state(seq)`) attaches a sequence as a state.
    */
-  state(name: string, value: StateValue<T>): Factory<T>
-  state(name: string): Factory<T>
-  state(seq: Sequence<T>): Factory<T>
   state(arg1: string | Sequence<T>, value?: StateValue<T>): Factory<T> {
     if (arg1 instanceof Sequence) {
       return this.clone({ sequences: [...this.internals.sequences, arg1.clone()] })
@@ -254,11 +251,11 @@ export class Factory<T extends object> {
   }
 
   /** Pick a random recycled model from `key`, or undefined. */
-  getRecycled<M extends object>(key: string): M | undefined {
+  getRecycled(key: string): object | undefined {
     const pool = this.internals.recycle.get(key)
     if (!pool || pool.length === 0) return undefined
     const idx = this.internals.faker.rawPrng().int(0, pool.length - 1)
-    return pool[idx] as M
+    return pool[idx]
   }
 
   // -------------------------------------------------------------------------
@@ -422,18 +419,28 @@ export class Factory<T extends object> {
    */
   private fireAfterMakingSync(items: readonly T[]): void {
     for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item === undefined) continue
       for (const hook of this.internals.afterMaking) {
-        const r = hook(items[i]!, i)
-        if (r instanceof Promise) r.catch(() => {})
+        const r = hook(item, i)
+        if (r instanceof Promise) r.catch(swallow)
       }
     }
   }
 
   private async runHooks(items: readonly T[], hooks: readonly Hook<T>[]): Promise<void> {
     for (let i = 0; i < items.length; i++) {
-      for (const hook of hooks) await hook(items[i]!, i)
+      const item = items[i]
+      if (item === undefined) continue
+      for (const hook of hooks) await hook(item, i)
     }
   }
+}
+
+// Sync-path afterMaking hooks intentionally fire-and-forget; this swallows
+// rejections so an unrelated hook can't crash the build.
+function swallow(): void {
+  /* intentional no-op */
 }
 
 /** Functional alias for `Factory.define()`. */

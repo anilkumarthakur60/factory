@@ -27,10 +27,16 @@ export class Color {
   }
 
   rgb(): string {
-    return `rgb(${this.rng.int(0, 255)}, ${this.rng.int(0, 255)}, ${this.rng.int(0, 255)})`
+    const r = this.rng.int(0, 255).toString()
+    const g = this.rng.int(0, 255).toString()
+    const b = this.rng.int(0, 255).toString()
+    return `rgb(${r}, ${g}, ${b})`
   }
 
   hsl(): string {
-    return `hsl(${this.rng.int(0, 360)}, ${this.rng.int(40, 90)}%, ${this.rng.int(30, 70)}%)`
+    const h = this.rng.int(0, 360).toString()
+    const s = this.rng.int(40, 90).toString()
+    const l = this.rng.int(30, 70).toString()
+    return `hsl(${h}, ${s}%, ${l}%)`
   }
 }

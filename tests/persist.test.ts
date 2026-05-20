@@ -27,14 +27,23 @@ describe('httpPersist', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('POSTs and unwraps a wrapped { data } response', async () => {
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      status: 201,
-      json: async () => ({
-        data: { id: 42, name: 'Server Name', email: 'srv@x.test', role: 'viewer', active: true },
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 201,
+        json: () =>
+          Promise.resolve({
+            data: {
+              id: 42,
+              name: 'Server Name',
+              email: 'srv@x.test',
+              role: 'viewer',
+              active: true,
+            },
+          }),
+        text: () => Promise.resolve(''),
       }),
-      text: async () => '',
-    }))
+    )
     const persist = httpPersist<User>('/users', { fetch: fetchMock })
     const user = await persist({ id: 0, name: 'x', email: 'x@y.z', role: 'viewer', active: true })
     expect(fetchMock).toHaveBeenCalledOnce()
@@ -43,18 +52,21 @@ describe('httpPersist', () => {
   })
 
   it('accepts a flat (non-wrapped) response shape', async () => {
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      status: 201,
-      json: async () => ({
-        id: 99,
-        name: 'Flat',
-        email: 'flat@x.test',
-        role: 'admin',
-        active: false,
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 201,
+        json: () =>
+          Promise.resolve({
+            id: 99,
+            name: 'Flat',
+            email: 'flat@x.test',
+            role: 'admin',
+            active: false,
+          }),
+        text: () => Promise.resolve(''),
       }),
-      text: async () => '',
-    }))
+    )
     const persist = httpPersist<User>('/users', { fetch: fetchMock })
     const user = await persist({ id: 0, name: 'x', email: 'x@y.z', role: 'viewer', active: true })
     expect(user.id).toBe(99)
@@ -62,12 +74,14 @@ describe('httpPersist', () => {
   })
 
   it('throws on non-2xx', async () => {
-    const fetchMock = vi.fn(async () => ({
-      ok: false,
-      status: 422,
-      json: async () => ({}),
-      text: async () => '{"error":"validation"}',
-    }))
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 422,
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('{"error":"validation"}'),
+      }),
+    )
     const persist = httpPersist<User>('/users', { fetch: fetchMock })
     await expect(
       persist({ id: 0, name: 'x', email: 'x@y.z', role: 'viewer', active: true }),

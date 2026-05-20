@@ -14,15 +14,15 @@ import type { Prng } from '@/prng/types'
 export class NumberGen {
   constructor(private readonly rng: Prng) {}
 
-  int(opts: { min?: number; max?: number } = {}): number {
+  int(opts: { max?: number; min?: number } = {}): number {
     return this.rng.int(opts.min ?? 0, opts.max ?? Number.MAX_SAFE_INTEGER)
   }
 
-  float(opts: { min?: number; max?: number; decimals?: number } = {}): number {
+  float(opts: { decimals?: number; max?: number; min?: number } = {}): number {
     return this.rng.float(opts.min ?? 0, opts.max ?? 1, opts.decimals ?? 2)
   }
 
-  bigInt(opts: { min?: bigint; max?: bigint } = {}): bigint {
+  bigInt(opts: { max?: bigint; min?: bigint } = {}): bigint {
     const min = opts.min ?? 0n
     const max = opts.max ?? 1_000_000_000n
     if (max < min) throw new Error('[Number] bigInt: max < min')

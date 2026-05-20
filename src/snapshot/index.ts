@@ -14,7 +14,7 @@
  */
 
 /** Recursively normalise dates, undefineds, and key order so snapshots are stable. */
-export function snapshot<T>(value: T): unknown {
+export function snapshot(value: unknown): unknown {
   return normalise(value)
 }
 

@@ -10,7 +10,9 @@ describe('Sequence', () => {
   })
 
   it('supports closure entries with index info', () => {
-    const s = new Sequence<{ name: string }>([({ index }) => ({ name: `User ${index}` })])
+    const s = new Sequence<{ name: string }>([
+      ({ index }) => ({ name: `User ${index.toString()}` }),
+    ])
     expect(s.next()).toEqual({ name: 'User 0' })
     expect(s.next()).toEqual({ name: 'User 1' })
   })
@@ -18,7 +20,7 @@ describe('Sequence', () => {
   it('supports mixed value + closure entries', () => {
     const s = new Sequence<{ kind: string }>([
       { kind: 'lit' },
-      ({ count }) => ({ kind: `dyn-${count}` }),
+      ({ count }) => ({ kind: `dyn-${count.toString()}` }),
     ])
     expect(s.next()).toEqual({ kind: 'lit' })
     expect(s.next()).toEqual({ kind: 'dyn-2' })

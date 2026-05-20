@@ -50,7 +50,9 @@ export class Mulberry32 implements Prng {
     if (items.length === 0) {
       throw new Error('[Prng] pick(): array is empty.')
     }
-    return items[this.int(0, items.length - 1)]!
+    const picked = items[this.int(0, items.length - 1)]
+    if (picked === undefined) throw new Error('[Prng] pick(): unreachable index')
+    return picked
   }
 }
 

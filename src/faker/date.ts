@@ -47,7 +47,7 @@ export class DateGen {
   }
 
   /** A plausible birthdate for someone in `[min, max]` years old. */
-  birthdate(opts: { min?: number; max?: number } = {}): Date {
+  birthdate(opts: { max?: number; min?: number } = {}): Date {
     const min = opts.min ?? 18
     const max = opts.max ?? 80
     const now = Date.now()

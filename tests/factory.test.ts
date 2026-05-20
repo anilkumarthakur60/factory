@@ -112,7 +112,7 @@ describe('Factory · build', () => {
   it('hasAttached() attaches pivot data', () => {
     const RoleFactory = defineFactory<{ id: number; name: string }>(({ seq }) => ({
       id: seq,
-      name: `R${seq}`,
+      name: `R${seq.toString()}`,
     }))
     const u = makeUserFactory()
       .hasAttached(RoleFactory.count(2), 'roles', { active: true })

@@ -60,7 +60,7 @@ export class Collection<T> implements Iterable<T> {
   }
 
   /** Sort by a key or comparator, returning a new collection. */
-  sortBy<K extends keyof T>(key: K, direction: 'asc' | 'desc' = 'asc'): Collection<T> {
+  sortBy(key: keyof T, direction: 'asc' | 'desc' = 'asc'): Collection<T> {
     const sorted = [...this.items].sort((a, b) => {
       const av = a[key]
       const bv = b[key]
