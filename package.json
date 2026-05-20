@@ -4,7 +4,18 @@
   "description": "Laravel-inspired model factory + faceted faker for TypeScript. Seedable, locale-aware, framework-agnostic, zero runtime deps.",
   "type": "module",
   "license": "MIT",
-  "author": "anil-labs",
+  "author": {
+    "name": "Anil Kumar Thakur",
+    "url": "https://github.com/anilkumarthakur60"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anilkumarthakur60/factory.git"
+  },
+  "homepage": "https://github.com/anilkumarthakur60/factory#readme",
+  "bugs": {
+    "url": "https://github.com/anilkumarthakur60/factory/issues"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -73,6 +84,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm test",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "prepublishOnly": "npm run clean && npm run verify && npm run build"
   },
   "devDependencies": {
@@ -82,12 +96,13 @@
     "@vitest/coverage-v8": "^4.1.7",
     "eslint": "^10.4.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-perfectionist": "^5.7.0",
+    "eslint-plugin-perfectionist": "^5.9.0",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.4",
     "vite": "^8.0.13",
     "vite-plugin-dts": "^5.0.1",
+    "vitepress": "^1.6.4",
     "vitest": "^4.1.7"
   },
   "engines": {
