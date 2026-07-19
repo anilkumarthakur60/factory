@@ -8,6 +8,12 @@ Restructure as a monorepo, add a CDN build, and fix 18 audited bugs — includin
 
 - Ships a browser global build alongside ESM and CJS. `dist/index.global.js` exposes a `FactoryJS` global and the `unpkg`/`jsdelivr` fields are set, so the library now works from a plain `<script>` tag with no bundler.
 - `Faker` accepts a new `refDate` option (`Date | number`) with a chainable `faker.refDate(d)` setter and `faker.currentRefDate()` reader, pinning the anchor used by the relative `date.*` helpers. `DateGen` also takes an optional injectable clock.
+- **TypeScript 4.9 through 7.x are supported.** The shipped declarations are verified against 4.9, 5.0, 5.2, 5.4, 5.9, 6.0 and 7.0 under both `moduleResolution: "bundler"` and `"node16"`, for ESM and CJS consumers alike.
+
+**Packaging**
+
+- **The install is 2.5× smaller — 80 KB, down from 200 KB.** Sourcemaps are no longer published; they were 64% of the tarball. This does not affect bundle size (bundlers strip them), but stepping into the library's original TypeScript source in a debugger is no longer possible — read the source on GitHub instead.
+- **Emitted filenames changed.** The ESM bundle is now `dist/index.js` rather than `dist/index.mjs`, and subpath declarations are `dist/faker.d.ts` rather than `dist/faker/index.d.ts`. The `exports` map is updated to match, so normal imports (`@anil-labs/factory`, `@anil-labs/factory/faker`, …) are unaffected. Only code that deep-imports a `dist/…` path directly — which was never a supported entry point — needs changing.
 
 **Fixed — reproducibility**
 
