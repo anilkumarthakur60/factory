@@ -1,4 +1,5 @@
 import { Faker, faker as defaultFaker } from '@/faker'
+import { withFaker } from '@/faker/context'
 import { Collection } from './collection'
 import { Sequence } from './sequence'
 import type { SequenceEntry } from './sequence'
@@ -368,42 +369,49 @@ export class Factory<T extends object> {
     const seq = index + 1
     const ctx: BuildContext = { seq, faker: this.internals.faker }
 
-    let item = this.definition(ctx)
+    // Install this factory's faker for the whole pass so builder helpers
+    // (`oneOf`, `maybe`, `array`) — which take no arguments and so cannot
+    // reach `ctx` — resolve against it instead of the shared default
+    // singleton. Without this, `seed()` would leave them non-reproducible.
+    // Child factories built by relations below nest and restore correctly.
+    return withFaker(this.internals.faker, () => {
+      let item = this.definition(ctx)
 
-    for (const stateName of this.internals.activeStates) {
-      const state = this.internals.states.get(stateName)
-      if (!state) continue
-      item = { ...item, ...(typeof state === 'function' ? state(item, ctx) : state) }
-    }
+      for (const stateName of this.internals.activeStates) {
+        const state = this.internals.states.get(stateName)
+        if (!state) continue
+        item = { ...item, ...(typeof state === 'function' ? state(item, ctx) : state) }
+      }
 
-    for (const sequence of this.internals.sequences) {
-      item = { ...item, ...sequence.next() }
-    }
+      for (const sequence of this.internals.sequences) {
+        item = { ...item, ...sequence.next() }
+      }
 
-    for (const [field, values] of this.internals.fieldSequences) {
-      const value = values[index % values.length]
-      item = { ...item, [field]: value }
-    }
+      for (const [field, values] of this.internals.fieldSequences) {
+        const value = values[index % values.length]
+        item = { ...item, [field]: value }
+      }
 
-    item = { ...item, ...this.internals.overrides }
+      item = { ...item, ...this.internals.overrides }
 
-    for (const rel of this.internals.hasRelations) {
-      const children = rel.factory.count(rel.count).make()
-      const arr = Array.isArray(children) ? children : [children]
-      item = { ...item, [rel.key as string]: arr }
-    }
+      for (const rel of this.internals.hasRelations) {
+        const children = rel.factory.count(rel.count).make()
+        const arr = Array.isArray(children) ? children : [children]
+        item = { ...item, [rel.key as string]: arr }
+      }
 
-    for (const rel of this.internals.hasAttachedRelations) {
-      const children = rel.factory.count(rel.count).make()
-      const arr = Array.isArray(children) ? children : [children]
-      const withPivot = arr.map((child: object) => {
-        const pivotData = typeof rel.pivot === 'function' ? rel.pivot(item, child) : rel.pivot
-        return { ...child, pivot: pivotData }
-      })
-      item = { ...item, [rel.key as string]: withPivot }
-    }
+      for (const rel of this.internals.hasAttachedRelations) {
+        const children = rel.factory.count(rel.count).make()
+        const arr = Array.isArray(children) ? children : [children]
+        const withPivot = arr.map((child: object) => {
+          const pivotData = typeof rel.pivot === 'function' ? rel.pivot(item, child) : rel.pivot
+          return { ...child, pivot: pivotData }
+        })
+        item = { ...item, [rel.key as string]: withPivot }
+      }
 
-    return item
+      return item
+    })
   }
 
   private buildMany(): T[] {

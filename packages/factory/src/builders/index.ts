@@ -1,7 +1,9 @@
-import { faker } from '@/faker'
+import { currentFaker } from '@/faker/context'
 
 /**
- * Pick one value from `choices` at call time. Reads from the default faker.
+ * Pick one value from `choices` at call time. Reads from the faker of the
+ * factory currently building, so `Factory.seed(n)` makes the choice
+ * reproducible; outside a build it falls back to the default faker.
  * Use inside factory definitions to express "any of these".
  *
  * @example
@@ -12,7 +14,7 @@ import { faker } from '@/faker'
  * ```
  */
 export function oneOf<T>(choices: readonly T[]): T {
-  return faker.helpers.arrayElement(choices)
+  return currentFaker().helpers.arrayElement(choices)
 }
 
 /**
@@ -25,7 +27,7 @@ export function oneOf<T>(choices: readonly T[]): T {
  * ```
  */
 export function maybe<T>(value: T, chance = 0.5): T | undefined {
-  return faker.helpers.maybe(value, chance)
+  return currentFaker().helpers.maybe(value, chance)
 }
 
 /**
@@ -46,7 +48,7 @@ export function array<T>(
     return Array.from({ length: min }, (_, i) => maxOrFn(i))
   }
   if (!fn) throw new Error('[builders] array(min, max, fn): missing builder function.')
-  const length = faker.helpers.arrayElement(
+  const length = currentFaker().helpers.arrayElement(
     Array.from({ length: maxOrFn - min + 1 }, (_, i) => min + i),
   )
   return Array.from({ length }, (_, i) => fn(i))
