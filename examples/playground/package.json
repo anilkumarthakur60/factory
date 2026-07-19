@@ -13,7 +13,7 @@
     "@anil-labs/factory": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.1",
     "typescript": "^6.0.3"
   }
 }

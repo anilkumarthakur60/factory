@@ -34,10 +34,9 @@ updates:
         patterns:
           - 'typescript'
           - '@types/*'
-      vite:
+      build-and-test:
         patterns:
-          - 'vite'
-          - 'vite-*'
+          - 'tsup'
           - 'vitest'
           - '@vitest/*'
       vitepress:
@@ -45,6 +44,14 @@ updates:
           - 'vitepress'
     # Hold back majors — they almost always need human eyes. Allow only
     # patch/minor in the auto-PR stream; majors will be raised individually.
+    #
+    # TypeScript specifically: do NOT move to 7.x yet. TS 7 rewrote the
+    # compiler's Node API, and as of typescript@7.0.2 both tsup's declaration
+    # build and typescript-eslint crash against it:
+    #   tsup              -> TypeError: ... reading 'useCaseSensitiveFileNames'
+    #   typescript-eslint -> TypeError: ... reading 'Cjs'
+    # Plain `tsc --noEmit` and vitest are fine — it is the tooling that lags.
+    # Revisit once tsup and typescript-eslint declare TS 7 support.
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
