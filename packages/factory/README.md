@@ -1,10 +1,15 @@
 # @anil-labs/factory
 
-Laravel-inspired model factories + a seedable, locale-aware faceted faker for TypeScript. **Zero runtime dependencies.** ESM + CJS. Browser, Node 20+, Bun, Deno.
+Laravel-inspired model factories + a seedable, locale-aware faceted faker for TypeScript. **Zero runtime dependencies.** ESM + CJS + a browser global. Browser, Node 20+, Bun, Deno.
 
 ```bash
 npm i @anil-labs/factory
 ```
+
+**TypeScript 4.9 through 7.x** are supported. The shipped declarations are verified
+against 4.9, 5.0, 5.2, 5.4, 5.9, 6.0 and 7.0 under both `moduleResolution: "bundler"`
+and `"node16"`, for ESM and CJS consumers alike. TypeScript is optional — plain
+JavaScript works just as well.
 
 ```ts
 import { defineFactory, oneOf, faker } from '@anil-labs/factory'

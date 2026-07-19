@@ -27,7 +27,13 @@ export default defineConfig([
     format: ['esm', 'cjs'],
     dts: true,
     tsconfig: 'tsconfig.tsup.json',
-    sourcemap: true,
+    // No sourcemaps in the published package. They were 64% of the tarball
+    // (460 KB of 724 KB) for a debugging aid almost nobody uses on a
+    // test-data factory that is itself a devDependency, and they do not
+    // affect consumers' bundle size either way since bundlers strip them.
+    // The repo's own tests run against `src` through the `@` alias and never
+    // touch dist, so nothing local depends on them either.
+    sourcemap: false,
     clean: true,
     treeshake: true,
     splitting: true,
@@ -41,7 +47,13 @@ export default defineConfig([
     // The library build owns `clean`; this pass must not wipe it.
     clean: false,
     dts: false,
-    sourcemap: true,
+    // No sourcemaps in the published package. They were 64% of the tarball
+    // (460 KB of 724 KB) for a debugging aid almost nobody uses on a
+    // test-data factory that is itself a devDependency, and they do not
+    // affect consumers' bundle size either way since bundlers strip them.
+    // The repo's own tests run against `src` through the `@` alias and never
+    // touch dist, so nothing local depends on them either.
+    sourcemap: false,
     treeshake: true,
     target: 'es2022',
     outDir: 'dist',
