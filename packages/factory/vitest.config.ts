@@ -43,7 +43,9 @@ export default defineConfig({
         lines: 98,
         statements: 97,
         functions: 99,
-        branches: 87,
+        // Ratcheted 87 -> 89 after the audit regression suites landed
+        // (measured 90.4%).
+        branches: 89,
       },
     },
   },
