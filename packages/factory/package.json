@@ -18,7 +18,7 @@
     "url": "https://github.com/anilkumarthakur60/factory/issues"
   },
   "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "unpkg": "./dist/index.global.js",
   "jsdelivr": "./dist/index.global.js",
@@ -26,46 +26,46 @@
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.mjs"
+        "default": "./dist/index.js"
       },
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       },
-      "default": "./dist/index.mjs"
+      "default": "./dist/index.js"
     },
     "./faker": {
       "import": {
-        "types": "./dist/faker/index.d.ts",
-        "default": "./dist/faker.mjs"
+        "types": "./dist/faker.d.ts",
+        "default": "./dist/faker.js"
       },
       "require": {
-        "types": "./dist/faker/index.d.cts",
+        "types": "./dist/faker.d.cts",
         "default": "./dist/faker.cjs"
       },
-      "default": "./dist/faker.mjs"
+      "default": "./dist/faker.js"
     },
     "./persist": {
       "import": {
-        "types": "./dist/persist/index.d.ts",
-        "default": "./dist/persist.mjs"
+        "types": "./dist/persist.d.ts",
+        "default": "./dist/persist.js"
       },
       "require": {
-        "types": "./dist/persist/index.d.cts",
+        "types": "./dist/persist.d.cts",
         "default": "./dist/persist.cjs"
       },
-      "default": "./dist/persist.mjs"
+      "default": "./dist/persist.js"
     },
     "./locales/en": {
       "import": {
         "types": "./dist/locales/en.d.ts",
-        "default": "./dist/locales/en.mjs"
+        "default": "./dist/locales/en.js"
       },
       "require": {
         "types": "./dist/locales/en.d.cts",
         "default": "./dist/locales/en.cjs"
       },
-      "default": "./dist/locales/en.mjs"
+      "default": "./dist/locales/en.js"
     },
     "./package.json": "./package.json"
   },
@@ -77,7 +77,7 @@
   ],
   "scripts": {
     "clean": "rm -rf dist coverage",
-    "build": "vite build && vite build --config vite.iife.config.ts",
+    "build": "tsup && node scripts/check-dist.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -86,12 +86,10 @@
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run test"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.58.7",
     "@types/node": "^25.9.1",
     "@vitest/coverage-v8": "^4.1.7",
+    "tsup": "^8.5.1",
     "typescript": "^6.0.3",
-    "vite": "^8.0.13",
-    "vite-plugin-dts": "^5.0.1",
     "vitest": "^4.1.7"
   },
   "engines": {

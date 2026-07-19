@@ -86,7 +86,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build (vite-plugin-dts + size-budget check + IIFE bundle)
+      - name: Build (tsup ESM/CJS/IIFE + dts, then size + node16 declaration checks)
         run: pnpm run build
 
       # Builds the examples against the freshly built package, which exercises
