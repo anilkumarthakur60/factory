@@ -40,6 +40,9 @@ const U = charRange(0x41, 0x5a) // 'A'..'Z'
 const W = [...D, ...L, ...U, '_']
 const S = [' ', '\t']
 const NW = [' ', '!', '@', '#', '$', '%', '&', '*', '-', '+', '=', ';', ':', ',', '.', '/', '?']
+// `\S` reuses the non-word pool, but a space is both non-word *and* whitespace —
+// drawing one would produce output that fails the very regex it was generated from.
+const NW_NO_SPACE = NW.filter((c) => !S.includes(c))
 const ALL = [...W, ...S, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '+']
 
 function expandEscape(ch: string): string[] {
@@ -55,7 +58,7 @@ function expandEscape(ch: string): string[] {
     case 's':
       return [...S]
     case 'S':
-      return [...W, ...NW]
+      return [...W, ...NW_NO_SPACE]
     case 'n':
       return ['\n']
     case 't':
@@ -132,11 +135,13 @@ class RegexParser {
     const ch = this.peek()
     if (ch === '(') {
       this.pos++
-      // Handle non-capturing `(?:...)` and other special forms — we just
-      // skip up to the colon and treat as a group.
-      if (this.peek() === '?') {
-        const colon = this.src.indexOf(':', this.pos)
-        if (colon !== -1) this.pos = colon + 1
+      // Non-capturing `(?:...)` behaves exactly like a plain group, so drop the
+      // two-character prefix. Any other `(?…)` form must NOT scan ahead for a
+      // colon: the nearest one is usually a literal outside the group, and
+      // skipping to it would silently delete the pattern in between. Those forms
+      // fall through and are rendered literally, as the doc comment promises.
+      if (this.peek() === '?' && this.src[this.pos + 1] === ':') {
+        this.pos += 2
       }
       const inner = this.parseAlt()
       if (this.peek() === ')') this.pos++
