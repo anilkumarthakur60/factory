@@ -27,7 +27,19 @@ export function memoryPersist<T extends { id?: number | string }>(): Persist<T> 
   let items: T[] = []
 
   const persist: Persist<T> = (item) => {
-    const withId = item.id !== undefined ? item : { ...item, id: nextId++ }
+    let withId: T
+    if (item.id === undefined) {
+      withId = { ...item, id: nextId++ }
+    } else {
+      withId = item
+      // Advance past ids the definition supplied itself (the documented
+      // `({ seq }) => ({ id: seq })` shape). Without this the counter would
+      // later hand out an id already in the store, and `find()` — which
+      // returns the first match — would silently resolve to the older row.
+      if (typeof item.id === 'number' && item.id >= nextId) {
+        nextId = item.id + 1
+      }
+    }
     items.push(withId)
     return withId
   }
