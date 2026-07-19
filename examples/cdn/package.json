@@ -1,0 +1,11 @@
+{
+  "name": "example-cdn",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "No-bundler demo of the @anil-labs/factory browser global build.",
+  "scripts": {
+    "build": "node check.mjs",
+    "typecheck": "echo \"(cdn example: no typecheck)\""
+  }
+}

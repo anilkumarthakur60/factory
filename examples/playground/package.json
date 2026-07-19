@@ -1,0 +1,19 @@
+{
+  "name": "example-playground",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Node + TypeScript demo of @anil-labs/factory, resolved through the built package (validates the real exports map and type declarations).",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "start": "node --experimental-strip-types src/main.ts"
+  },
+  "dependencies": {
+    "@anil-labs/factory": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@anil-labs/factory — CDN demo</title>
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        max-width: 60rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+      }
+      pre {
+        background: #f4f4f5;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #18181b;
+          color: #e4e4e7;
+        }
+        pre {
+          background: #27272a;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>@anil-labs/factory — CDN demo</h1>
+    <p>
+      No bundler, no build step. The global build exposes everything on
+      <code>FactoryJS</code>. In production you would load it from a CDN:
+    </p>
+    <pre><code>&lt;script src="https://unpkg.com/@anil-labs/factory"&gt;&lt;/script&gt;</code></pre>
+
+    <h2>Generated users (seeded, so this output is stable)</h2>
+    <pre id="out">running…</pre>
+
+    <!-- Local build so the demo works straight from the repo. -->
+    <script src="../../packages/factory/dist/index.global.js"></script>
+    <script>
+      const { defineFactory, oneOf, faker } = FactoryJS
+
+      const userFactory = defineFactory(({ seq, faker }) => ({
+        id: seq,
+        name: faker.person.fullName(),
+        email: faker.internet.email(),
+        role: oneOf(['admin', 'editor', 'viewer']),
+        active: true,
+      })).state('admin', { role: 'admin' })
+
+      const lines = []
+      lines.push('// seeded -> deterministic output')
+      lines.push(JSON.stringify(userFactory.seed(42).count(3).makeMany(), null, 2))
+      lines.push('')
+      lines.push('// a single admin')
+      lines.push(JSON.stringify(userFactory.seed(7).state('admin').makeOne(), null, 2))
+      lines.push('')
+      lines.push('// standalone faker: ' + faker.person.firstName())
+
+      document.getElementById('out').textContent = lines.join('\n')
+    </script>
+  </body>
+</html>
