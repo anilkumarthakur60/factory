@@ -21,6 +21,12 @@ import { Helpers } from './helpers'
 export interface FakerOptions {
   /** Initial locale name. Defaults to `"en"`. */
   locale?: string
+  /**
+   * Fixed anchor for the relative `date.*` helpers. If omitted they read the
+   * wall clock, which makes seeded date output drift between runs — pin this
+   * when you need snapshots that are reproducible from the seed alone.
+   */
+  refDate?: Date | number
   /** Initial PRNG seed. If omitted, a time-based seed is used. */
   seed?: number
 }
@@ -50,6 +56,8 @@ export interface FakerOptions {
 export class Faker {
   private readonly rng: Prng
   private readonly localeRef: LocaleRef
+  /** `null` means "follow the wall clock" — see {@link Faker#refDate}. */
+  private refDateMs: number | null = null
 
   readonly person: Person
   readonly internet: Internet
@@ -70,12 +78,15 @@ export class Faker {
   constructor(opts: FakerOptions = {}) {
     this.rng = createPrng(opts.seed)
     this.localeRef = new LocaleRef(opts.locale ?? 'en')
+    if (opts.refDate !== undefined) this.refDate(opts.refDate)
 
     this.person = new Person(this.rng, this.localeRef)
     this.internet = new Internet(this.rng, this.localeRef)
     this.location = new Location(this.rng, this.localeRef)
     this.lorem = new Lorem(this.rng, this.localeRef)
-    this.date = new DateGen(this.rng)
+    // Read through a closure rather than a captured value so `refDate()` keeps
+    // working after construction, like `seed()` and `locale()` do.
+    this.date = new DateGen(this.rng, () => this.refDateMs ?? Date.now())
     this.number = new NumberGen(this.rng)
     this.string = new StringGen(this.rng)
     this.color = new Color(this.rng, this.localeRef)
@@ -92,6 +103,31 @@ export class Faker {
   seed(seed: number): this {
     this.rng.seed(seed)
     return this
+  }
+
+  /**
+   * Pin the anchor used by the relative `date.*` helpers (`past`, `recent`,
+   * `future`, `soon`, `iso`, `birthdate`).
+   *
+   * Those helpers seed only the random *offset*; the anchor is the wall clock
+   * by default, so two runs with the same seed produce dates that drift by the
+   * elapsed real time. Pinning removes that ambient input and makes date output
+   * reproducible from the seed alone. Pass `null` to go back to `Date.now()`.
+   *
+   * @example
+   * ```ts
+   * const f = new Faker({ seed: 42 }).refDate(Date.UTC(2024, 0, 1))
+   * f.date.past()   // identical on every run
+   * ```
+   */
+  refDate(d: Date | number | null): this {
+    this.refDateMs = d === null ? null : typeof d === 'number' ? d : d.getTime()
+    return this
+  }
+
+  /** Current pinned anchor, or `null` when following the wall clock. */
+  currentRefDate(): Date | null {
+    return this.refDateMs === null ? null : new Date(this.refDateMs)
   }
 
   /** Switch the active locale. Throws if unknown. */
@@ -115,7 +151,10 @@ export class Faker {
    * one's current state. Useful when you need to fork a deterministic stream.
    */
   fork(): Faker {
-    return new Faker({ seed: this.rng.int(0, 0xffffffff), locale: this.localeRef.name })
+    // Carry the pin across: a fork of a reproducible stream must stay reproducible.
+    return new Faker({ seed: this.rng.int(0, 0xffffffff), locale: this.localeRef.name }).refDate(
+      this.refDateMs,
+    )
   }
 
   /** Access the underlying PRNG. Advanced use only. */
