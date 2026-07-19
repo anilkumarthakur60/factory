@@ -39,7 +39,18 @@ export class Mulberry32 implements Prng {
   float(min: number, max: number, decimals = 2): number {
     const v = this.next() * (max - min) + min
     const factor = 10 ** decimals
-    return Math.round(v * factor) / factor
+    // Truncate toward `min` rather than rounding half-up: half-up promotes any
+    // draw within half a quantum of `max` to exactly `max`, which breaks the
+    // documented half-open `[min, max)` range (at `decimals = 0` that is half
+    // of all draws).
+    const scaled = Math.floor(v * factor)
+    let quantised = scaled / factor
+    // Floating-point error in `v * factor` can still land the quotient on the
+    // exclusive bound; step down one quantum if it does.
+    if (quantised >= max && max > min) quantised = (scaled - 1) / factor
+    // Truncation undershoots when `min` itself is not on the decimals grid
+    // (e.g. `float(0.005, 1, 2)`); `min` is inclusive, so clamp up to it.
+    return quantised < min ? min : quantised
   }
 
   bool(chance = 0.5): boolean {

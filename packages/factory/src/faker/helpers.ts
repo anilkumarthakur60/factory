@@ -49,16 +49,18 @@ export class Helpers {
   }
 
   shuffle<T>(items: readonly T[]): T[] {
-    const copy = [...items]
+    // The element type is widened so the swap type-checks under
+    // `noUncheckedIndexedAccess` (an index read is `T | undefined`). Guarding on
+    // `undefined` instead would skip the swap for arrays that legitimately hold
+    // `undefined` — e.g. anything built from `maybe()` — pinning that element to
+    // its original index on every shuffle. Both indices here are always in
+    // bounds, so no element is ever lost.
+    const copy: (T | undefined)[] = [...items]
     for (let i = copy.length - 1; i > 0; i--) {
       const j = this.rng.int(0, i)
-      const a = copy[i]
-      const b = copy[j]
-      if (a === undefined || b === undefined) continue
-      copy[i] = b
-      copy[j] = a
+      ;[copy[i], copy[j]] = [copy[j], copy[i]]
     }
-    return copy
+    return copy as T[]
   }
 
   weightedArrayElement<T>(items: readonly WeightedItem<T>[]): T {
