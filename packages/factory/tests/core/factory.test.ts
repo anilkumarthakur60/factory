@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Collection, FactoryRegistry, defineFactory, memoryPersist, oneOf, sequence } from '@'
-import type { Post, User } from './helpers'
+import type { Post, User } from '../helpers'
 
 const makeUserFactory = () =>
   defineFactory<User>(({ seq, faker }) => ({
