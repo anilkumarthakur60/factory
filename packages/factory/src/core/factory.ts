@@ -1,5 +1,7 @@
 import { Faker, faker as defaultFaker } from '@/faker'
+import type { FakerOptions } from '@/faker'
 import { withFaker } from '@/faker/context'
+import { isLazy } from '@/builders'
 import { Collection } from './collection'
 import { Sequence } from './sequence'
 import type { SequenceEntry } from './sequence'
@@ -27,10 +29,18 @@ interface InternalState<T extends object> {
   fieldSequences: Map<keyof T | string, readonly unknown[]>
   hasAttachedRelations: HasAttachedRelation<T, object>[]
   hasRelations: HasRelation<T, object>[]
+  /** Locale requested via `locale()`, or null for the Faker default. */
+  localeName: string | null
   overrides: Partial<T>
   ownsFaker: boolean
   persist: Persist<T> | null
   recycle: Map<string, readonly object[]>
+  /**
+   * Seed requested via `seed()`, or null when the factory is unseeded.
+   * Tracked separately because `Faker.currentSeed()` reports the *drifting*
+   * PRNG state, so the original seed cannot be recovered from the instance.
+   */
+  seedValue: number | null
   sequences: Sequence<T>[]
   states: Map<string, StateValue<T>>
 }
@@ -89,6 +99,8 @@ export class Factory<T extends object> {
       recycle: new Map(),
       persist: persist ?? null,
       ownsFaker: false,
+      seedValue: null,
+      localeName: null,
     })
   }
 
@@ -109,9 +121,26 @@ export class Factory<T extends object> {
       recycle: new Map(this.internals.recycle),
       persist: this.internals.persist,
       ownsFaker: this.internals.ownsFaker,
+      seedValue: this.internals.seedValue,
+      localeName: this.internals.localeName,
       ...patch,
     }
     return new Factory(this.definition, next)
+  }
+
+  /**
+   * Mint a private Faker from the tracked seed/locale pair. Always a fresh
+   * instance: a Faker carries mutable PRNG *and* locale state, so handing an
+   * existing one to a derived factory would let the derived factory's
+   * `locale()` retro-actively rewrite the factory it came from.
+   */
+  private privateFaker(seed: number | null, locale: string | null): Faker {
+    // exactOptionalPropertyTypes: omit the keys rather than pass undefined,
+    // so Faker applies its own defaults (time-based seed, locale "en").
+    const opts: FakerOptions = {}
+    if (seed !== null) opts.seed = seed
+    if (locale !== null) opts.locale = locale
+    return new Faker(opts)
   }
 
   // -------------------------------------------------------------------------
@@ -145,7 +174,7 @@ export class Factory<T extends object> {
    */
   state(arg1: string | Sequence<T>, value?: StateValue<T>): Factory<T> {
     if (arg1 instanceof Sequence) {
-      return this.clone({ sequences: [...this.internals.sequences, arg1.clone()] })
+      return this.clone({ sequences: this.clonedSequences(arg1) })
     }
     if (value !== undefined) {
       const states = new Map(this.internals.states)
@@ -169,6 +198,12 @@ export class Factory<T extends object> {
 
   /** Cycle values through one field across generated items. */
   fieldSequence<K extends keyof T>(field: K, values: readonly T[K][]): Factory<T> {
+    // Reject an empty list at chain time, mirroring `new Sequence([])`. The
+    // build site would otherwise compute `index % 0` → NaN and overwrite the
+    // definition's value with `undefined` without a word.
+    if (values.length === 0) {
+      throw new Error(`[Factory] fieldSequence("${String(field)}"): expected at least one value.`)
+    }
     const fieldSequences = new Map(this.internals.fieldSequences)
     fieldSequences.set(field, values)
     return this.clone({ fieldSequences })
@@ -176,16 +211,37 @@ export class Factory<T extends object> {
 
   /** Attach a sequence of attribute patches. */
   sequence(entries: readonly SequenceEntry<T>[]): Factory<T> {
-    const seq = new Sequence<T>(entries)
-    return this.clone({ sequences: [...this.internals.sequences, seq] })
+    return this.clone({ sequences: this.clonedSequences(new Sequence<T>(entries)) })
+  }
+
+  /**
+   * The sequence list for a derived factory: copies of the ones already
+   * attached, plus `added`. `clone()` copies sequences too, but a `sequences`
+   * patch overrides that copy — so without this the carried-over entries would
+   * be the parent's *live* cursors and the two factories would draw from one
+   * shared position.
+   */
+  private clonedSequences(added: Sequence<T>): Sequence<T>[] {
+    return [...this.internals.sequences.map((s) => s.clone()), added.clone()]
   }
 
   // -------------------------------------------------------------------------
   // Relations
   // -------------------------------------------------------------------------
 
-  /** Attach child records under `key` (one-to-many). */
-  has<C extends object>(childFactory: Factory<C>, key: keyof T | string): Factory<T> {
+  /**
+   * Attach child records under `key` (one-to-many).
+   *
+   * `key` is inferred as a literal so the built type gains the relation —
+   * `UserFactory.has(PostFactory, 'posts').makeOne().posts` typechecks as
+   * `Post[]` with no cast at the call site.
+   */
+  has<C extends object, K extends string>(
+    childFactory: Factory<C>,
+    key: K,
+  ): Factory<T & Record<K, C[]>> {
+    // The relation is written into the item by `buildOne`, which is untyped
+    // key-wise, so the widening lives entirely in this signature.
     return this.clone({
       hasRelations: [
         ...this.internals.hasRelations,
@@ -196,7 +252,7 @@ export class Factory<T extends object> {
           key,
         },
       ],
-    })
+    }) as unknown as Factory<T & Record<K, C[]>>
   }
 
   /**
@@ -223,12 +279,17 @@ export class Factory<T extends object> {
     return this.with(patch)
   }
 
-  /** Attach related records with pivot/intermediate data (many-to-many). */
-  hasAttached<C extends object>(
+  /**
+   * Attach related records with pivot/intermediate data (many-to-many).
+   *
+   * As with {@link has}, `key` is inferred as a literal and widens the built
+   * type — each child gains the `pivot` property the build actually writes.
+   */
+  hasAttached<C extends object, K extends string>(
     childFactory: Factory<C>,
-    key: keyof T | string,
+    key: K,
     pivot: Record<string, unknown> | ((parent: T, child: C) => Record<string, unknown>) = {},
-  ): Factory<T> {
+  ): Factory<T & Record<K, (C & { pivot: Record<string, unknown> })[]>> {
     return this.clone({
       hasAttachedRelations: [
         ...this.internals.hasAttachedRelations,
@@ -240,7 +301,7 @@ export class Factory<T extends object> {
           pivot: pivot as HasAttachedRelation<T, object>['pivot'],
         },
       ],
-    })
+    }) as unknown as Factory<T & Record<K, (C & { pivot: Record<string, unknown> })[]>>
   }
 
   /** Add models to the recycle pool keyed by `key`. */
@@ -286,19 +347,33 @@ export class Factory<T extends object> {
    * Bind this factory to its own private `Faker` instance, seeded as given.
    * Useful when one factory in a suite must be deterministic without
    * affecting the shared default faker.
+   *
+   * The seed is re-applied at the start of every terminal call, so a seeded
+   * factory reproduces on repeat builds and across sibling clones rather than
+   * handing each one whatever PRNG state the previous build left behind.
+   * Any locale already chosen in the chain is preserved.
    */
   seed(seed: number): Factory<T> {
-    const own = new Faker({ seed })
-    return this.clone({ faker: own, ownsFaker: true })
+    return this.clone({
+      faker: this.privateFaker(seed, this.internals.localeName),
+      ownsFaker: true,
+      seedValue: seed,
+    })
   }
 
-  /** Set the locale on this factory's faker (creates one if it was shared). */
+  /**
+   * Set the locale for this factory's data. Returns a factory with its own
+   * private, freshly built `Faker` — the source factory and any sibling
+   * clones keep the locale they were built with. Any seed already set in the
+   * chain is preserved, so `.locale(l).seed(n)` and `.seed(n).locale(l)`
+   * describe the same factory.
+   */
   locale(name: string): Factory<T> {
-    const own = this.internals.ownsFaker
-      ? this.internals.faker
-      : new Faker({ seed: this.internals.faker.currentSeed() })
-    own.locale(name)
-    return this.clone({ faker: own, ownsFaker: true })
+    return this.clone({
+      faker: this.privateFaker(this.internals.seedValue, name),
+      ownsFaker: true,
+      localeName: name,
+    })
   }
 
   // -------------------------------------------------------------------------
@@ -307,7 +382,7 @@ export class Factory<T extends object> {
 
   /** Build a single item (ignoring `count`). */
   makeOne(): T {
-    const item = this.buildOne(0)
+    const item = this.buildOne(0, this.beginBuild())
     this.fireAfterMakingSync([item])
     return item
   }
@@ -365,7 +440,24 @@ export class Factory<T extends object> {
   // Build engine
   // -------------------------------------------------------------------------
 
-  private buildOne(index: number): T {
+  /**
+   * Prepare the mutable state a single terminal call consumes, and return the
+   * sequence cursors to draw from.
+   *
+   * Both halves exist to keep a terminal call from mutating its receiver: the
+   * PRNG is rewound so a seeded factory yields the same data on every call and
+   * in every clone that shares the instance, and sequences are drawn from
+   * throwaway copies so `.makeMany()` twice does not continue where it left off.
+   */
+  private beginBuild(): Sequence<T>[] {
+    const { faker, ownsFaker, seedValue } = this.internals
+    // Only rewind a factory that asked to be deterministic — reseeding an
+    // unseeded one would turn every build into the same "random" data.
+    if (ownsFaker && seedValue !== null) faker.seed(seedValue)
+    return this.internals.sequences.map((s) => s.clone())
+  }
+
+  private buildOne(index: number, sequences: readonly Sequence<T>[]): T {
     const seq = index + 1
     const ctx: BuildContext = { seq, faker: this.internals.faker }
 
@@ -383,16 +475,22 @@ export class Factory<T extends object> {
         item = { ...item, ...(typeof state === 'function' ? state(item, ctx) : state) }
       }
 
-      for (const sequence of this.internals.sequences) {
+      for (const sequence of sequences) {
         item = { ...item, ...sequence.next() }
       }
 
       for (const [field, values] of this.internals.fieldSequences) {
+        // fieldSequence() rejects empty lists, so the modulo is always safe.
         const value = values[index % values.length]
         item = { ...item, [field]: value }
       }
 
       item = { ...item, ...this.internals.overrides }
+
+      // Definitions, states, sequences and overrides may all contribute
+      // `lazy(() => …)` markers. Resolve once the merges are done, so a later
+      // layer can still overwrite an earlier lazy field without evaluating it.
+      item = resolveLazyFields(item)
 
       for (const rel of this.internals.hasRelations) {
         const children = rel.factory.count(rel.count).make()
@@ -415,8 +513,9 @@ export class Factory<T extends object> {
   }
 
   private buildMany(): T[] {
+    const sequences = this.beginBuild()
     const out: T[] = []
-    for (let i = 0; i < this.internals.count; i++) out.push(this.buildOne(i))
+    for (let i = 0; i < this.internals.count; i++) out.push(this.buildOne(i, sequences))
     return out
   }
 
@@ -443,6 +542,21 @@ export class Factory<T extends object> {
       for (const hook of hooks) await hook(item, i)
     }
   }
+}
+
+/**
+ * Replace every `lazy(() => …)` marker among `item`'s own enumerable
+ * properties with the value it resolves to. Copies only when there is
+ * something to resolve, so the common case allocates nothing.
+ */
+function resolveLazyFields<T extends object>(item: T): T {
+  let out: Record<string, unknown> | null = null
+  for (const [key, value] of Object.entries(item as Record<string, unknown>)) {
+    if (!isLazy(value)) continue
+    out ??= { ...(item as Record<string, unknown>) }
+    out[key] = value.resolve()
+  }
+  return out === null ? item : (out as T)
 }
 
 // Sync-path afterMaking hooks intentionally fire-and-forget; this swallows

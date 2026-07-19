@@ -66,8 +66,9 @@ const roles = userFactory
 console.log('field sequence:', roles)
 
 // 6. Relations -------------------------------------------------------------
+// `has()` widens the factory type, so `.posts` is typed without a cast.
 const withPosts = userFactory.has(postFactory.count(2), 'posts').makeOne()
-console.log('user has posts:', Array.isArray((withPosts as User & { posts: Post[] }).posts))
+console.log('user has posts:', Array.isArray(withPosts.posts))
 
 const post = postFactory.for(userFactory, 'userId').makeOne()
 console.log('post belongs to user:', post.userId)

@@ -55,10 +55,38 @@ export function array<T>(
 }
 
 /**
+ * Brand identifying a value produced by {@link lazy}.
+ *
+ * A symbol rather than a duck-typed `resolve` property: factories routinely
+ * carry real user data, and an entity that legitimately owns a `resolve`
+ * method must not be mistaken for a deferred value and silently replaced by
+ * its return value. `Symbol.for` keeps the brand stable if the ESM and CJS
+ * bundles are both loaded in one process.
+ */
+const LAZY: unique symbol = Symbol.for('@anil-labs/factory.lazy')
+
+/** A deferred value produced by {@link lazy}, resolved at build time. */
+export interface Lazy<T> {
+  readonly [LAZY]: true
+  resolve(): T
+}
+
+/**
  * Defer evaluation until the value is actually read. Inside factory
  * definitions you rarely need this (the definition is a function already),
- * but it's useful for sequence entries and state values.
+ * but it's useful for sequence entries and state values — the factory
+ * resolves any lazy field while building each item.
+ *
+ * @example
+ * ```ts
+ * factory.state('late', { token: lazy(() => randomToken()) })
+ * ```
  */
-export function lazy<T>(fn: () => T): { resolve(): T } {
-  return { resolve: fn }
+export function lazy<T>(fn: () => T): Lazy<T> {
+  return { [LAZY]: true, resolve: fn }
+}
+
+/** Whether `value` was produced by {@link lazy}. */
+export function isLazy(value: unknown): value is Lazy<unknown> {
+  return typeof value === 'object' && value !== null && LAZY in value
 }

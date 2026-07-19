@@ -90,9 +90,8 @@ describe('Factory · build', () => {
   })
 
   it('has() attaches child collection', () => {
-    const u = makeUserFactory().has(makePostFactory().count(2), 'posts').makeOne() as User & {
-      posts: Post[]
-    }
+    // No cast needed: `has()` widens the factory type with the relation key.
+    const u = makeUserFactory().has(makePostFactory().count(2), 'posts').makeOne()
     expect(u.posts).toHaveLength(2)
     expect(u.posts[0]!.title.length).toBeGreaterThan(0)
   })
