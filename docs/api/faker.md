@@ -7,7 +7,7 @@ import { faker } from '@anil-labs/factory'
 faker.person.fullName()
 ```
 
-Lives in the global module state — `faker.seed(n)` and `faker.locale(name)` mutate it in place. Use `new Faker(...)` for an isolated instance.
+Lives in the global module state  `faker.seed(n)` and `faker.locale(name)` mutate it in place. Use `new Faker(...)` for an isolated instance.
 
 ## `Faker` class
 
@@ -32,12 +32,12 @@ new Faker({ seed?: number, locale?: string })
 | `system`           | `System`                            |
 | `datatype`         | `Datatype`                          |
 | `helpers`          | `Helpers`                           |
-| `.seed(n)`         | `this` — reseed PRNG                |
-| `.locale(name)`    | `this` — swap active locale         |
+| `.seed(n)`         | `this`  reseed PRNG                |
+| `.locale(name)`    | `this`  swap active locale         |
 | `.currentSeed()`   | `number`                            |
 | `.currentLocale()` | `string`                            |
-| `.fork()`          | `Faker` — independent reseeded copy |
-| `.rawPrng()`       | `Prng` — underlying generator       |
+| `.fork()`          | `Faker`  independent reseeded copy |
+| `.rawPrng()`       | `Prng`  underlying generator       |
 
 ## Locale registry
 

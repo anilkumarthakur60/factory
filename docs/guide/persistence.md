@@ -12,13 +12,13 @@ UserFactory.afterMaking((user, index) => {
 })
 ```
 
-- `afterMaking(fn)` — fires after every item built by `make()`, `makeOne()`, `makeMany()`, `collect()`, `create()`.
-- `afterCreating(fn)` — fires after every item passes through the persistence adapter (only on `.create()` / `.createMany()`).
-- Hooks may be sync or async. On the sync `.make()` path, async hooks are fire-and-forget — use `.create()` if you need sequencing.
+- `afterMaking(fn)`  fires after every item built by `make()`, `makeOne()`, `makeMany()`, `collect()`, `create()`.
+- `afterCreating(fn)`  fires after every item passes through the persistence adapter (only on `.create()` / `.createMany()`).
+- Hooks may be sync or async. On the sync `.make()` path, async hooks are fire-and-forget  use `.create()` if you need sequencing.
 
 ## Persistence adapters
 
-A `Persist<T>` is just `(item: T) => T | Promise<T>` — implement your own or use one of the three shipped adapters.
+A `Persist<T>` is just `(item: T) => T | Promise<T>`  implement your own or use one of the three shipped adapters.
 
 ### `memoryPersist()`
 
@@ -56,7 +56,7 @@ Works with `fetch`, `axios.request`, or any fetch-shaped callable.
 
 ### `consolePersist(label?)`
 
-Logs each item to the console and returns it unchanged — useful when wiring up a factory before pointing it at a real backend:
+Logs each item to the console and returns it unchanged  useful when wiring up a factory before pointing it at a real backend:
 
 ```ts
 import { consolePersist } from '@anil-labs/factory'

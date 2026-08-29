@@ -18,7 +18,7 @@ interface Prng {
 
 ## `Mulberry32`
 
-The default implementation — 32-bit state, fast, deterministic, ~4 billion period. Good enough for test data and snapshots. **Not cryptographically secure.**
+The default implementation  32-bit state, fast, deterministic, ~4 billion period. Good enough for test data and snapshots. **Not cryptographically secure.**
 
 ```ts
 import { Mulberry32 } from '@anil-labs/factory'
@@ -30,7 +30,7 @@ rng.seed(0xdeadbeef)
 
 ## `createPrng(seed?)`
 
-Convenience factory that returns a `Mulberry32` today — wrap your code in this if you might want to swap implementations later.
+Convenience factory that returns a `Mulberry32` today  wrap your code in this if you might want to swap implementations later.
 
 ```ts
 import { createPrng } from '@anil-labs/factory'

@@ -16,16 +16,16 @@ hero:
 features:
   - icon: 🏭
     title: Laravel-quality factories
-    details: 'Immutable fluent chain — state(), sequence(), has(), for(), hasAttached(), recycle(), afterMaking(), persist().'
+    details: 'Immutable fluent chain  state(), sequence(), has(), for(), hasAttached(), recycle(), afterMaking(), persist().'
   - icon: 🎲
     title: Faceted, seedable faker
-    details: '15 namespaces — person, internet, location, finance, system, regex, and more. Reseed for deterministic tests.'
+    details: '15 namespaces  person, internet, location, finance, system, regex, and more. Reseed for deterministic tests.'
   - icon: 🌐
     title: Locale-aware
     details: 'Pluggable locale registry. English ships by default; register any locale you need.'
   - icon: 🔌
     title: Pluggable persistence
-    details: 'memoryPersist for tests, httpPersist for live APIs, consolePersist for inspection — or bring your own.'
+    details: 'memoryPersist for tests, httpPersist for live APIs, consolePersist for inspection  or bring your own.'
   - icon: 📦
     title: ESM + CJS, zero deps
     details: 'Modern dual-package layout with .d.ts + .d.cts. No transitive surprises.'

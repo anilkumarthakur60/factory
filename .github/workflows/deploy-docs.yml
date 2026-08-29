@@ -1,7 +1,7 @@
 name: Deploy Docs to GitHub Pages
 
 on:
-  # Only redeploy when docs content or this workflow itself changes — saves
+  # Only redeploy when docs content or this workflow itself changes  saves
   # CI minutes vs rebuilding on every src/ commit.
   push:
     branches: [main]

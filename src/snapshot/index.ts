@@ -1,7 +1,7 @@
 /**
  * Snapshot helpers.
  *
- * The package doesn't write files itself — it just normalises payloads so
+ * The package doesn't write files itself  it just normalises payloads so
  * test runners (vitest, jest) can snapshot them deterministically.
  *
  * @example

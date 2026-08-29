@@ -13,7 +13,7 @@ import type {
 } from './types'
 
 /**
- * Internal mutable state — never exposed outside the factory. We rebuild
+ * Internal mutable state  never exposed outside the factory. We rebuild
  * one of these on every clone, so chaining stays immutable from the caller's
  * perspective while staying simple internally.
  */
@@ -35,7 +35,7 @@ interface InternalState<T extends object> {
 }
 
 /**
- * Laravel-inspired model factory for TypeScript. Immutable fluent chain — every
+ * Laravel-inspired model factory for TypeScript. Immutable fluent chain  every
  * method returns a new factory, never mutating the original.
  *
  * @example
@@ -61,7 +61,7 @@ export class Factory<T extends object> {
   /** @internal */ private readonly definition: Definition<T>
   /** @internal */ private readonly internals: InternalState<T>
 
-  /** @internal — use {@link defineFactory} or {@link Factory.define} instead. */
+  /** @internal  use {@link defineFactory} or {@link Factory.define} instead. */
   private constructor(definition: Definition<T>, internals: InternalState<T>) {
     this.definition = definition
     this.internals = internals
@@ -125,7 +125,7 @@ export class Factory<T extends object> {
     return this.clone({ count: n })
   }
 
-  /** Alias of {@link count} — matches Laravel's `->times()`. */
+  /** Alias of {@link count}  matches Laravel's `->times()`. */
   times(n: number): Factory<T> {
     return this.count(n)
   }
@@ -200,7 +200,7 @@ export class Factory<T extends object> {
 
   /**
    * Set a foreign-key field by either resolving from another factory
-   * (eager — built once), a plain object (used directly), or a lazy callback
+   * (eager  built once), a plain object (used directly), or a lazy callback
    * (built per-item).
    */
   for<P extends object>(
@@ -319,7 +319,7 @@ export class Factory<T extends object> {
   }
 
   /**
-   * Build — single item when `count === 1`, array otherwise.
+   * Build  single item when `count === 1`, array otherwise.
    * Use {@link makeOne} / {@link makeMany} when you need a specific shape.
    */
   make(): T | T[] {
@@ -414,7 +414,7 @@ export class Factory<T extends object> {
 
   /**
    * Fire afterMaking hooks for the sync build path (`make`/`makeOne`/`makeMany`/
-   * `collect`). Async hooks are kicked off without awaiting — use {@link create}
+   * `collect`). Async hooks are kicked off without awaiting  use {@link create}
    * if you need guaranteed sequencing.
    */
   private fireAfterMakingSync(items: readonly T[]): void {

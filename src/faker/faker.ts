@@ -28,7 +28,7 @@ export interface FakerOptions {
 /**
  * Faceted, seedable, locale-aware random-data generator.
  *
- * Every namespace shares the same PRNG and locale reference — `seed()` and
+ * Every namespace shares the same PRNG and locale reference  `seed()` and
  * `locale()` mutate that shared state in place, so changes propagate without
  * re-constructing modules.
  *
@@ -39,7 +39,7 @@ export interface FakerOptions {
  * const f = new Faker({ seed: 42, locale: 'en' })
  * f.person.fullName()    // "Olivia Patel"
  * f.seed(42)
- * f.person.fullName()    // "Olivia Patel" — deterministic
+ * f.person.fullName()    // "Olivia Patel"  deterministic
  *
  * // Or use the package's default instance:
  * import { faker } from '@anil-labs/factory'
@@ -124,5 +124,5 @@ export class Faker {
   }
 }
 
-/** Default singleton — mutable via `faker.seed()` / `faker.locale()`. */
+/** Default singleton  mutable via `faker.seed()` / `faker.locale()`. */
 export const faker = new Faker()

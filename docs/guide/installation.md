@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- **Node 20 or newer** (the package's dev toolchain — Vite 8 / vitest 4 — requires it; the published library itself uses only standard ES2022).
+- **Node 20 or newer** (the package's dev toolchain  Vite 8 / vitest 4  requires it; the published library itself uses only standard ES2022).
 - TypeScript **5.0+** recommended for the best type-inference experience.
 
 Works in **Node, browsers, Bun, and Deno**. ESM + CJS dual build.
@@ -36,7 +36,7 @@ The package ships four entry points so you can pull in only what you need:
 | Import                          | Contents                                          |
 | ------------------------------- | ------------------------------------------------- |
 | `@anil-labs/factory`            | Everything (factory, faker, builders, persist, …) |
-| `@anil-labs/factory/faker`      | Faker only — no `Factory` class                   |
+| `@anil-labs/factory/faker`      | Faker only  no `Factory` class                   |
 | `@anil-labs/factory/persist`    | Persistence adapters (`memoryPersist`, etc.)      |
 | `@anil-labs/factory/locales/en` | English locale data                               |
 

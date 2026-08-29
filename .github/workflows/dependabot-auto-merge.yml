@@ -19,7 +19,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Safe rule: patch + minor only. Majors hit CI but stay unmerged —
+      # Safe rule: patch + minor only. Majors hit CI but stay unmerged 
       # a human reviews the changelog and merges manually.
       - name: Enable auto-merge (squash) for patch + minor
         if: |
@@ -34,7 +34,7 @@ jobs:
         if: steps.metadata.outputs.update-type == 'version-update:semver-major'
         run: |
           gh pr comment "$PR_URL" --body \
-            "👋 This is a **major** version bump — auto-merge is disabled by policy. Review the changelog before merging."
+            "👋 This is a **major** version bump  auto-merge is disabled by policy. Review the changelog before merging."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

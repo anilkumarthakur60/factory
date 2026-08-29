@@ -30,7 +30,7 @@ const tags = array(() => oneOf(['a', 'b', 'c']), 5)
 
 ## `lazy(fn)`
 
-Defer evaluation — useful when you want the function called per build, not at factory-definition time.
+Defer evaluation  useful when you want the function called per build, not at factory-definition time.
 
 ```ts
 const now = lazy(() => new Date())

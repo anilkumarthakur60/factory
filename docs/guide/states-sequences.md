@@ -21,10 +21,10 @@ UserFactory.state('admin').state('verified').count(3).make()
 
 States may be:
 
-- **A `Partial<T>` object** — merged in.
-- **A `(item, ctx) => Partial<T>` function** — receives the current item + build context.
+- **A `Partial<T>` object**  merged in.
+- **A `(item, ctx) => Partial<T>` function**  receives the current item + build context.
 
-Activation is additive — calling `.state('admin').state('inactive')` applies both, in order.
+Activation is additive  calling `.state('admin').state('inactive')` applies both, in order.
 
 ## Sequences
 

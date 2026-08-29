@@ -35,7 +35,7 @@ export class Sequence<T extends object = object> {
   /** Resolve the next patch, cycling when exhausted. */
   next(): Partial<T> {
     // Constructor guarantees entries.length > 0, so the modular index is
-    // always in-bounds — the `?? throw` is a typesystem narrow, never hit.
+    // always in-bounds  the `?? throw` is a typesystem narrow, never hit.
     const entry =
       this.entries[this.cursor % this.entries.length] ??
       (() => {

@@ -1,7 +1,7 @@
 import type { Prng } from './types'
 
 /**
- * Mulberry32 — 32-bit, ~4 billion period, very fast, deterministic.
+ * Mulberry32  32-bit, ~4 billion period, very fast, deterministic.
  *
  * Good enough for test data and snapshots. NOT cryptographically secure.
  *

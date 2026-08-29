@@ -7,7 +7,7 @@ describe('builders', () => {
     expect(['a', 'b', 'c']).toContain(choice)
   })
 
-  it('maybe respects the probability — chance=1 always returns the value', () => {
+  it('maybe respects the probability  chance=1 always returns the value', () => {
     expect(maybe('present', 1)).toBe('present')
     expect(maybe('present', 0)).toBeUndefined()
   })

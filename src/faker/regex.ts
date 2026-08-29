@@ -123,7 +123,7 @@ class RegexParser {
       const node = this.parseAtom()
       const q = this.parseQuant()
       items.push({ node, min: q.min, max: q.max })
-      if (this.peek() === '?') this.pos++ // lazy modifier on group-level — ignore
+      if (this.peek() === '?') this.pos++ // lazy modifier on group-level  ignore
     }
     return { kind: 'seq', items }
   }
@@ -132,7 +132,7 @@ class RegexParser {
     const ch = this.peek()
     if (ch === '(') {
       this.pos++
-      // Handle non-capturing `(?:...)` and other special forms — we just
+      // Handle non-capturing `(?:...)` and other special forms  we just
       // skip up to the colon and treat as a group.
       if (this.peek() === '?') {
         const colon = this.src.indexOf(':', this.pos)
@@ -219,7 +219,7 @@ class RegexParser {
       if (end !== -1) {
         const inner = this.src.slice(this.pos + 1, end)
         this.pos = end + 1
-        if (this.peek() === '?') this.pos++ // lazy — ignore
+        if (this.peek() === '?') this.pos++ // lazy  ignore
         const parts = inner.split(',')
         const lo = parseInt(parts[0] ?? '1', 10)
         const hi = parts.length > 1 ? (parts[1] ? parseInt(parts[1], 10) : lo + 4) : lo

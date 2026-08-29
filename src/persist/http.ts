@@ -1,6 +1,6 @@
 import type { Persist } from '@/core/types'
 
-/** Minimal `fetch`-like interface — works with `fetch`, `axios.request`, etc. */
+/** Minimal `fetch`-like interface  works with `fetch`, `axios.request`, etc. */
 type FetchLike = (
   url: string,
   init: { body: string; headers: Record<string, string>; method: string },
@@ -14,7 +14,7 @@ type FetchLike = (
 export interface HttpPersistOptions {
   /** Custom fetch implementation (defaults to global `fetch`). */
   fetch?: FetchLike
-  /** Extra HTTP headers — combined with `Content-Type: application/json`. */
+  /** Extra HTTP headers  combined with `Content-Type: application/json`. */
   headers?: Record<string, string>
   /**
    * Function that extracts the persisted entity from the HTTP response.
@@ -27,7 +27,7 @@ export interface HttpPersistOptions {
  * HTTP persistence adapter. POSTs each built item to `url` and returns the
  * server-assigned representation.
  *
- * Works with any `fetch`-shaped implementation — pass `axios.request` or a
+ * Works with any `fetch`-shaped implementation  pass `axios.request` or a
  * test double if you need to intercept.
  *
  * @example
@@ -56,7 +56,7 @@ export function httpPersist<T>(url: string, options: HttpPersistOptions = {}): P
   return async (item: T): Promise<T> => {
     if (!doFetch) {
       throw new Error(
-        '[httpPersist] No global `fetch` is available — pass `options.fetch` explicitly.',
+        '[httpPersist] No global `fetch` is available  pass `options.fetch` explicitly.',
       )
     }
     const response = await doFetch(url, {

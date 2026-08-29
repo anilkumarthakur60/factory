@@ -4,12 +4,12 @@ For complete signatures and inline JSDoc, the published `.d.ts` files are the so
 
 ## Modules
 
-- [Factory](/api/factory) — `Factory<T>` class, `defineFactory()`, `Sequence`, `Collection`, `FactoryRegistry`
-- [Faker](/api/faker) — `Faker` class, `faker` singleton, locale registry
-- [Builders](/api/builders) — `oneOf`, `maybe`, `array`, `lazy`
-- [Persistence](/api/persistence) — `memoryPersist`, `httpPersist`, `consolePersist`
-- [PRNG](/api/prng) — `Mulberry32`, `createPrng`, `Prng` interface
-- [Snapshot](/api/snapshot) — `snapshot()`
+- [Factory](/api/factory)  `Factory<T>` class, `defineFactory()`, `Sequence`, `Collection`, `FactoryRegistry`
+- [Faker](/api/faker)  `Faker` class, `faker` singleton, locale registry
+- [Builders](/api/builders)  `oneOf`, `maybe`, `array`, `lazy`
+- [Persistence](/api/persistence)  `memoryPersist`, `httpPersist`, `consolePersist`
+- [PRNG](/api/prng)  `Mulberry32`, `createPrng`, `Prng` interface
+- [Snapshot](/api/snapshot)  `snapshot()`
 
 ## Entry points
 

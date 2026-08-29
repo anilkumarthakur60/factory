@@ -16,7 +16,7 @@ const entries = {
   'locales/en': 'src/locales/en.ts',
 } as const
 
-// Per-entry size ceilings. Catches accidental dep bloat — e.g. an
+// Per-entry size ceilings. Catches accidental dep bloat  e.g. an
 // `import { something } from 'huge-lib'` slipping in. Tighten as the
 // package stabilises.
 const SIZE_BUDGETS_KB: Record<string, number> = {
@@ -32,7 +32,7 @@ const SIZE_BUDGETS_KB: Record<string, number> = {
 
 // Inline plugin: walks dist/ after the build and fails the build if any
 // entry exceeds its KB budget. Vite emits ESM and CJS as separate outputs
-// so `closeBundle` fires twice — gate on "every budgeted file exists" to
+// so `closeBundle` fires twice  gate on "every budgeted file exists" to
 // guarantee we report once, after both passes are on disk.
 function sizeBudget(): Plugin {
   const KB = 1024
@@ -96,7 +96,7 @@ export default defineConfig({
       tsconfigPath: 'tsconfig.build.json',
       // Emit per-source `.d.ts` files (one per `src/**/*.ts`). The exports
       // map points at the directory `index.d.ts` for subpaths so consumers
-      // pick up the right entry — same pattern as the snaptime package.
+      // pick up the right entry  same pattern as the snaptime package.
       // Mirror every declaration to `.d.cts` so strict node16/nodenext
       // resolution finds types for the `require` branch.
       outDirs: [{ dir: 'dist' }, { dir: 'dist', moduleFormat: 'cjs' }],

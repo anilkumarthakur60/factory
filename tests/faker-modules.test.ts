@@ -388,7 +388,7 @@ describe('faker.helpers (uncovered methods)', () => {
       Inactive,
     }
     // For numeric enums, `enumValue` strips reverse-mapped numeric keys and
-    // returns the string names ('Active' / 'Inactive') — by design.
+    // returns the string names ('Active' / 'Inactive')  by design.
     expect(['Active', 'Inactive']).toContain(f.helpers.enumValue(Status))
     const stringEnum = { A: 'a', B: 'b' } as const
     expect(['a', 'b']).toContain(f.helpers.enumValue(stringEnum))
@@ -579,7 +579,7 @@ describe('faker.number (uncovered methods)', () => {
   })
 })
 
-describe('Factory — additional paths', () => {
+describe('Factory  additional paths', () => {
   it('times(n) is an alias for count(n)', () => {
     const F = defineFactory<{ id: number }>(({ seq }) => ({ id: seq }))
     expect(F.times(3).makeMany()).toHaveLength(3)
@@ -615,7 +615,7 @@ describe('Factory — additional paths', () => {
       name: string
     }
     const F = defineFactory<U>(({ faker }) => ({ name: faker.person.firstName() }))
-    // Just verify the chain works — switching back to 'en' is a no-op.
+    // Just verify the chain works  switching back to 'en' is a no-op.
     expect(typeof F.locale('en').makeOne().name).toBe('string')
   })
 
@@ -629,7 +629,7 @@ describe('Factory — additional paths', () => {
   })
 })
 
-describe('Collection — uncovered branches', () => {
+describe('Collection  uncovered branches', () => {
   it('sortBy treats equal values as equal (returns 0)', () => {
     const c = new Collection([
       { id: 1, n: 5 },
@@ -646,7 +646,7 @@ describe('Collection — uncovered branches', () => {
   })
 })
 
-describe('memoryPersist — uncovered branches', () => {
+describe('memoryPersist  uncovered branches', () => {
   it('find(id) returns undefined for unknown ids', () => {
     const store = memoryPersist<{ id?: number; name: string }>()
     void store({ name: 'a' })
@@ -660,7 +660,7 @@ describe('memoryPersist — uncovered branches', () => {
   })
 })
 
-describe('httpPersist — error paths', () => {
+describe('httpPersist  error paths', () => {
   it('throws when no fetch is available', async () => {
     // Force global fetch to look absent via a fresh closure with no fetch arg.
     const original = (globalThis as { fetch?: unknown }).fetch
@@ -687,19 +687,19 @@ describe('httpPersist — error paths', () => {
   })
 })
 
-describe('Factory afterMaking — async hook rejection is swallowed', () => {
+describe('Factory afterMaking  async hook rejection is swallowed', () => {
   it('does not crash when a sync make() path hook returns a rejecting Promise', async () => {
     const F = defineFactory<{ id: number }>(({ seq }) => ({ id: seq })).afterMaking(() =>
       Promise.reject(new Error('hook boom')),
     )
-    // make() is sync — the rejecting promise is fire-and-forget.
+    // make() is sync  the rejecting promise is fire-and-forget.
     expect(() => F.makeOne()).not.toThrow()
     // Let the swallowed rejection settle so it doesn't leak into the next test.
     await new Promise<void>((resolve) => setTimeout(resolve, 0))
   })
 })
 
-describe('faker.lorem — empty-word edge case', () => {
+describe('faker.lorem  empty-word edge case', () => {
   const f = faker()
 
   it('words(0) returns an empty string (exercises capitalize empty-string branch)', () => {
@@ -709,7 +709,7 @@ describe('faker.lorem — empty-word edge case', () => {
   })
 })
 
-describe('faker.number — defaults branch', () => {
+describe('faker.number  defaults branch', () => {
   const f = faker()
 
   it('int() and float() work with no opts', () => {
@@ -720,7 +720,7 @@ describe('faker.number — defaults branch', () => {
   })
 })
 
-describe('faker.regex — anchors, lazy quantifiers, dot, literals', () => {
+describe('faker.regex  anchors, lazy quantifiers, dot, literals', () => {
   const f = faker()
 
   it('anchors ^ and $ are treated as zero-width', () => {
@@ -746,7 +746,7 @@ describe('faker.regex — anchors, lazy quantifiers, dot, literals', () => {
   })
 })
 
-describe('faker.regex — negated escape character classes', () => {
+describe('faker.regex  negated escape character classes', () => {
   const f = faker()
 
   it('\\D yields a non-digit', () => {
@@ -761,16 +761,16 @@ describe('faker.regex — negated escape character classes', () => {
     expect(f.helpers.fromRegExp(/\S/)).toMatch(/^\S$/)
   })
 
-  it('escape inside a character class — [\\d]+ yields digits', () => {
+  it('escape inside a character class  [\\d]+ yields digits', () => {
     expect(f.helpers.fromRegExp(/[\d]+/)).toMatch(/^\d+$/)
   })
 
-  it('literal char inside a character class — [abc]+', () => {
+  it('literal char inside a character class  [abc]+', () => {
     expect(f.helpers.fromRegExp(/[abc]+/)).toMatch(/^[abc]+$/)
   })
 })
 
-describe('Mulberry32 — direct PRNG paths', () => {
+describe('Mulberry32  direct PRNG paths', () => {
   it('int(max, min) swaps reversed arguments', () => {
     const p = new Mulberry32(42)
     const v = p.int(10, 1)
@@ -794,7 +794,7 @@ describe('Mulberry32 — direct PRNG paths', () => {
   })
 })
 
-describe('Factory — recycle + getRecycled', () => {
+describe('Factory  recycle + getRecycled', () => {
   it('recycle(models, key) and getRecycled(key) round-trip', () => {
     interface User {
       id: number
@@ -825,7 +825,7 @@ describe('Factory — recycle + getRecycled', () => {
   })
 })
 
-describe('LocaleRef constructor — error path', () => {
+describe('LocaleRef constructor  error path', () => {
   it('throws when constructed with an unknown locale', () => {
     // The default LocaleRef('en') always works; force the throw branch with
     // an unregistered name via the Faker entry-point.
@@ -833,7 +833,7 @@ describe('LocaleRef constructor — error path', () => {
   })
 })
 
-describe('Faker — additional paths', () => {
+describe('Faker  additional paths', () => {
   it('fork() yields an independent faker seeded from the parent', () => {
     const a = faker()
     const forkA = a.fork()

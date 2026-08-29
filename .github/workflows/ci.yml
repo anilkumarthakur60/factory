@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         # Node 18 is excluded: Vite 8's bundler (rolldown) imports
-        # `node:util.styleText`, added in Node 20.12 — it crashes at vitest
+        # `node:util.styleText`, added in Node 20.12  it crashes at vitest
         # startup on Node 18. The published library itself has no Node 18-
         # incompatible code; this is purely a dev-toolchain constraint.
         node-version: [20, 22, 24, 26]

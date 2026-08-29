@@ -1,7 +1,7 @@
 import type { Prng } from '@/prng/types'
 
 /**
- * Image-URL generators. No bytes are produced — just predictable URLs that
+ * Image-URL generators. No bytes are produced  just predictable URLs that
  * resolve to real images from public providers.
  *
  * @example
@@ -20,7 +20,7 @@ export class Image {
     return `https://picsum.photos/${width.toString()}/${height.toString()}?random=${random}`
   }
 
-  /** ui-avatars.com avatar URL — needs a name to render initials. */
+  /** ui-avatars.com avatar URL  needs a name to render initials. */
   avatar(name = 'User'): string {
     const params = new URLSearchParams({
       name,
@@ -31,9 +31,9 @@ export class Image {
     return `https://ui-avatars.com/api/?${params.toString()}`
   }
 
-  /** Tiny single-color PNG data-uri — useful for testing inline-image flows. */
+  /** Tiny single-color PNG data-uri  useful for testing inline-image flows. */
   dataUri(width = 1, height = 1): string {
-    // Solid 1x1 PNG is a well-known constant — wider sizes use the same pixel
+    // Solid 1x1 PNG is a well-known constant  wider sizes use the same pixel
     // for simplicity (the goal is a syntactically valid data-uri, not a
     // rasterised image).
     void width

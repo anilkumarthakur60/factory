@@ -33,10 +33,10 @@ Immutable fluent builder. Every method returns a new factory; the original is ne
 | `.afterMaking(fn)` / `.afterCreating(fn)`     | `Factory<T>`    | Register hooks                                |
 | `.persist(fn)`                                | `Factory<T>`    | Set persistence callback for `.create()`      |
 | `.seed(n)` / `.locale(name)`                  | `Factory<T>`    | Fork a private faker                          |
-| `.makeOne()` / `.makeMany()`                  | `T` / `T[]`     | Terminal — build                              |
-| `.make()` / `.raw()`                          | `T \| T[]`      | Terminal — single or array depending on count |
-| `.collect()`                                  | `Collection<T>` | Terminal — wrap in a Collection               |
-| `.create()` / `.createMany()`                 | `Promise<…>`    | Terminal — build + persist                    |
+| `.makeOne()` / `.makeMany()`                  | `T` / `T[]`     | Terminal  build                              |
+| `.make()` / `.raw()`                          | `T \| T[]`      | Terminal  single or array depending on count |
+| `.collect()`                                  | `Collection<T>` | Terminal  wrap in a Collection               |
+| `.create()` / `.createMany()`                 | `Promise<…>`    | Terminal  build + persist                    |
 
 ## `Sequence<T>`
 
@@ -48,6 +48,6 @@ Immutable iterable wrapper with Laravel-like helpers: `.where()`, `.pluck()`, `.
 
 ## `FactoryRegistry`
 
-Name-based lookup for factories — useful when relations are wired by string key.
+Name-based lookup for factories  useful when relations are wired by string key.
 
 For complete signatures and JSDoc, see the published `.d.ts` files.

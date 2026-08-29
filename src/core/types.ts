@@ -2,7 +2,7 @@ import type { Faker } from '@/faker'
 
 /** Context passed to definition + state callbacks. */
 export interface BuildContext {
-  /** Shared faker instance — already seeded if the factory was. */
+  /** Shared faker instance  already seeded if the factory was. */
   readonly faker: Faker
   /** One-based item index for this build. */
   readonly seq: number
@@ -14,13 +14,13 @@ export type Definition<T> = (ctx: BuildContext) => T
 /** State function: returns an attribute patch to merge over the base. */
 export type StateFn<T> = (attrs: T, ctx: BuildContext) => Partial<T>
 
-/** State value — either an inline patch or a function returning one. */
+/** State value  either an inline patch or a function returning one. */
 export type StateValue<T> = Partial<T> | StateFn<T>
 
 /** Persistence callback used by `create()`. */
 export type Persist<T> = (item: T) => T | Promise<T>
 
-/** Lifecycle hook — may be sync or async. */
+/** Lifecycle hook  may be sync or async. */
 export type Hook<T> = (item: T, index: number) => void | Promise<void>
 
 /** Relation descriptor for `has()`. */

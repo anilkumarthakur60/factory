@@ -16,7 +16,7 @@ const items = UserFactory.seed(42).count(3).make()
 expect(snapshot(items)).toMatchSnapshot()
 ```
 
-The package doesn't write snapshot files itself — that's the test runner's job. `snapshot()` just makes the _input_ deterministic across:
+The package doesn't write snapshot files itself  that's the test runner's job. `snapshot()` just makes the _input_ deterministic across:
 
 - platforms (key order is not standardised across JS engines)
 - timezones (Dates stringify to ISO-UTC)

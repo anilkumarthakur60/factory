@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] — Initial release
+## [0.1.0]  Initial release
 
 ### Factory
 
@@ -31,9 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Persistence adapters
 
-- `memoryPersist<T>()` — in-memory store with `all()` / `find(id)` / `reset()`.
-- `httpPersist<T>(url, options?)` — fetch-shaped POST adapter with response unwrapping.
-- `consolePersist<T>(label?)` — logging adapter for inspection.
+- `memoryPersist<T>()`  in-memory store with `all()` / `find(id)` / `reset()`.
+- `httpPersist<T>(url, options?)`  fetch-shaped POST adapter with response unwrapping.
+- `consolePersist<T>(label?)`  logging adapter for inspection.
 
 ### Builders
 
@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Snapshot
 
-- `snapshot(value)` — normalises Dates / key order so test runners (vitest, jest) can snapshot stably.
+- `snapshot(value)`  normalises Dates / key order so test runners (vitest, jest) can snapshot stably.
 
 ### Packaging
 

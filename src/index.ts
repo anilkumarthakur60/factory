@@ -1,5 +1,5 @@
 /**
- * @anil-labs/factory — Laravel-inspired model factories + faceted seedable faker
+ * @anil-labs/factory  Laravel-inspired model factories + faceted seedable faker
  * for TypeScript. Zero runtime deps, ESM + CJS, framework-agnostic.
  *
  * @example

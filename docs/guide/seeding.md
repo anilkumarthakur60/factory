@@ -15,7 +15,7 @@ faker.person.fullName() // → 'Olivia Patel' (same draw)
 
 ## Seed one factory
 
-`.seed(n)` forks a private `Faker` for that factory — the global `faker` is untouched:
+`.seed(n)` forks a private `Faker` for that factory  the global `faker` is untouched:
 
 ```ts
 const A = UserFactory.seed(7)
@@ -39,11 +39,11 @@ const main = faker
 const sub = main.fork() // independent PRNG, same locale
 ```
 
-`fork()` seeds the new faker from the current PRNG state — useful when you need a deterministic sub-stream without affecting the parent.
+`fork()` seeds the new faker from the current PRNG state  useful when you need a deterministic sub-stream without affecting the parent.
 
 ## When determinism matters
 
-- Snapshot tests — `expect(snapshot(items)).toMatchSnapshot()` only works if `items` is stable across runs.
+- Snapshot tests  `expect(snapshot(items)).toMatchSnapshot()` only works if `items` is stable across runs.
 - Reproducing bug reports from production seed data.
 - Demo data that must look identical across dev / staging / docs screenshots.
 

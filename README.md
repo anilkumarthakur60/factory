@@ -94,7 +94,7 @@ const UserFactory = defineFactory<User>(({ seq, faker }) => ({
   active: true,
 }))
 
-// 3. Build (sync) — Laravel parity
+// 3. Build (sync)  Laravel parity
 UserFactory.make() // single
 UserFactory.count(10).make() // array
 UserFactory.with({ active: false }).make() // overrides
@@ -104,7 +104,7 @@ UserFactory.sequence([{ active: true }, { active: false }])
   .count(4)
   .make()
 
-// 4. Persist (async) — works with any backend
+// 4. Persist (async)  works with any backend
 const memory = memoryPersist<User>()
 await UserFactory.persist(memory).count(3).create()
 memory.all() // [User, User, User]
@@ -138,7 +138,7 @@ const users = UserFactory.count(20).collect()
 users.where((u) => u.active).count()
 users.pluck('email').toArray()
 
-// 7. Registry — look up by name
+// 7. Registry  look up by name
 FactoryRegistry.register('User', UserFactory)
 FactoryRegistry.resolve<User>('User').count(5).make()
 ```
@@ -166,7 +166,7 @@ You can also use the static form: `Factory.define<T>(definition, persist?)`.
 | ----------------------------------------- | ------------ | --------------------------------------------------------------------------------------- |
 | `.count(n)`                               | `Factory<T>` | Set how many items to build. Alias: `.times(n)`.                                        |
 | `.with(overrides)`                        | `Factory<T>` | Merge overrides into every built item.                                                  |
-| `.state(name, value)`                     | `Factory<T>` | Register a named state — `value` may be a partial OR `(item, ctx) => partial`.          |
+| `.state(name, value)`                     | `Factory<T>` | Register a named state  `value` may be a partial OR `(item, ctx) => partial`.          |
 | `.state(name)`                            | `Factory<T>` | Activate a registered state.                                                            |
 | `.state(sequenceInstance)`                | `Factory<T>` | Attach a sequence as state.                                                             |
 | `.states({ a: …, b: … })`                 | `Factory<T>` | Bulk-register states.                                                                   |
@@ -266,7 +266,7 @@ registerLocale('np', {
   title: 'नेपाली',
   firstNames: ['Aakash', 'Bina', 'Chetana', 'Dipesh'],
   lastNames: ['Adhikari', 'Bhandari', 'Chhetri', 'Dhakal'],
-  // ...etc — see the `LocaleData` interface
+  // ...etc  see the `LocaleData` interface
 })
 faker.locale('np')
 faker.person.fullName() // "Dipesh Bhandari"
