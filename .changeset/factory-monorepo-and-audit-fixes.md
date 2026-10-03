@@ -8,6 +8,7 @@ Restructure as a monorepo, add a CDN build, and fix 18 audited bugs — includin
 
 - Ships a browser global build alongside ESM and CJS. `dist/index.global.js` exposes a `FactoryJS` global and the `unpkg`/`jsdelivr` fields are set, so the library now works from a plain `<script>` tag with no bundler.
 - `Faker` accepts a new `refDate` option (`Date | number`) with a chainable `faker.refDate(d)` setter and `faker.currentRefDate()` reader, pinning the anchor used by the relative `date.*` helpers. `DateGen` also takes an optional injectable clock.
+- `Factory` gains a chainable `refDate(d)` that pins the same anchor for that factory's data. Without it, a factory inherits the default faker's pin (`faker.refDate(...)`), so pinning once globally makes every seeded factory's dates reproducible.
 - **TypeScript 4.9 through 7.x are supported.** The shipped declarations are verified against 4.9, 5.0, 5.2, 5.4, 5.9, 6.0 and 7.0 under both `moduleResolution: "bundler"` and `"node16"`, for ESM and CJS consumers alike.
 
 **Packaging**
@@ -19,17 +20,17 @@ Restructure as a monorepo, add a CDN build, and fix 18 audited bugs — includin
 
 These all shared one root cause: mutable state shared through the fluent chain, where the API promises that "every method returns a new factory, never mutating the original".
 
-- **`seed()` was effectively one-shot.** The private `Faker` was shared by reference across every clone and never re-applied, so calling a terminal method twice on a seeded factory returned different data, sibling clones drew from the same stream, and output depended on the order siblings were built. A seeded factory now reproduces on every terminal call and across clones. Unseeded factories remain random.
+- **`seed()` was effectively one-shot.** The private `Faker` was shared by reference across every clone and never re-applied, so calling a terminal method twice on a seeded factory returned different data, sibling clones drew from the same stream, and output depended on the order siblings were built. A seeded factory now reproduces on every terminal call and across clones. Unseeded factories remain random. A seeded child factory used in `has()` / `hasAttached()` gives each parent item different children, and the whole tree reproduces.
 - **The builder helpers ignored the seed.** `oneOf()`, `maybe()`, and `array()` read the shared default faker instead of the factory's, so `seed()` never made them reproducible — despite `oneOf` appearing in the README's first example.
-- **`locale()` mutated the faker in place**, retro-actively changing the factory it was called on and its sibling clones. It now forks.
+- **`locale()` mutated the faker in place**, retro-actively changing the factory it was called on and its sibling clones. Each terminal call now gets its own faker. An unseeded factory with a locale still follows the default faker's seed, so `faker.seed(n)` keeps it reproducible.
 - **`seed()` silently discarded a locale** set earlier in the chain. `.locale(l).seed(n)` and `.seed(n).locale(l)` are now equivalent.
 - **Sequences shared a cursor** between a factory and factories derived from it, and a build advanced the cursor on its own receiver.
-- **`faker.date.*` anchored on `Date.now()`**, so seeded date fields never reproduced across runs. Pin `refDate` for reproducible dates.
+- **`faker.date.*` anchored on `Date.now()`**, so seeded date fields never reproduced across runs. Pin `refDate` (on the faker or the factory) for reproducible dates.
 
 **Fixed — correctness**
 
-- `generateFromRegex`: `\S` no longer emits a space (it previously produced strings that failed their own input pattern), and unsupported `(?…)` forms (lookahead, named groups) no longer cause the parser to discard everything up to the next colon. `(?:…)` is unaffected.
-- `Prng.float` (and `number.float`, `commerce.price`, `finance.amount`, `location.latitude`/`longitude`) now honours its documented `[min, max)` range — it could previously return exactly `max` — and clamps up to `min` when `min` is off the decimal grid.
+- `generateFromRegex`: `\S` no longer emits a space (it previously produced strings that failed their own input pattern), and unsupported `(?…)` forms (lookahead, named groups) no longer cause the parser to discard everything up to the next colon. `(?:…)` is unaffected. It now also handles `\b` / `\B`, `\xHH`, `\uHHHH`, `\u{…}`, named groups and `{n,}`. Lookarounds are dropped instead of being rendered as text. `{,n}` is treated as literal text, which is what JavaScript does. Negated classes such as `[^\W]` emit only characters the class accepts.
+- `Prng.float` (and `number.float`, `commerce.price`, `finance.amount`, `location.latitude`/`longitude`) now honours its documented `[min, max)` range — it could previously return exactly `max` — and clamps up to `min` when `min` is off the decimal grid. Reversed bounds are swapped as `int()` does, so `number.float({ min: 5 })` (default `max` 1) no longer always returns 5.
 - `helpers.shuffle` no longer pins `undefined` elements to their original index.
 - `httpPersist` resolves `globalThis.fetch` at call time, so test mocks and polyfills installed after import are honoured (previously they were bypassed, causing real network calls in tests). It also reports invalid JSON with the URL and status instead of a bare `SyntaxError`, and its default parse follows the documented `json.data ?? json`.
 - `memoryPersist`'s auto-increment counter advances past ids the definition already set, so auto-assigned ids no longer collide.

@@ -4,13 +4,17 @@ import type { Prng } from '@/prng/types'
  * Generate a sample string that matches the given regular-expression pattern.
  *
  * Supports the regex subset commonly used in test data:
- *   - Literals, dot, escaped characters
+ *   - Literals, dot, escaped characters, `\xHH`, `\uHHHH`, `\u{H…}`
  *   - Character classes `[a-z]`, `[^…]`, `\d`, `\D`, `\w`, `\W`, `\s`, `\S`
- *   - Groups `(...)`, non-capturing `(?:...)`, alternation `a|b|c`
- *   - Quantifiers `*`, `+`, `?`, `{n}`, `{n,m}` (lazy `?` is ignored)
+ *   - Anchors `^`, `$` and word boundaries `\b`, `\B` (emit nothing)
+ *   - Groups `(...)`, non-capturing `(?:...)`, named `(?<name>...)`,
+ *     alternation `a|b|c`
+ *   - Quantifiers `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}` (lazy `?` is ignored)
  *
- * Unsupported regex features (lookbehind/lookahead, backreferences,
- * named groups) are silently treated as literals.
+ * Lookaround assertions are dropped, so output is not guaranteed to satisfy
+ * them. Backreferences are unsupported and rendered as their digit.
+ * Boundaries are not enforced either: `\bfoo\b` yields "foo", but `a\bb`
+ * still yields "ab".
  *
  * @example
  * ```ts
@@ -43,7 +47,9 @@ const NW = [' ', '!', '@', '#', '$', '%', '&', '*', '-', '+', '=', ';', ':', ','
 // `\S` reuses the non-word pool, but a space is both non-word *and* whitespace —
 // drawing one would produce output that fails the very regex it was generated from.
 const NW_NO_SPACE = NW.filter((c) => !S.includes(c))
-const ALL = [...W, ...S, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '+']
+// Universe a negated class `[^…]` draws from: printable ASCII plus tab. Broad
+// enough that excluding a handful of classes still leaves something to emit.
+const ALL = ['\t', ...charRange(0x20, 0x7e)]
 
 function expandEscape(ch: string): string[] {
   switch (ch) {
@@ -65,6 +71,12 @@ function expandEscape(ch: string): string[] {
       return ['\t']
     case 'r':
       return ['\r']
+    case 'f':
+      return ['\f']
+    case 'v':
+      return ['\v']
+    case '0':
+      return ['\0']
     default:
       return [ch]
   }
@@ -135,17 +147,25 @@ class RegexParser {
     const ch = this.peek()
     if (ch === '(') {
       this.pos++
-      // Non-capturing `(?:...)` behaves exactly like a plain group, so drop the
-      // two-character prefix. Any other `(?…)` form must NOT scan ahead for a
-      // colon: the nearest one is usually a literal outside the group, and
-      // skipping to it would silently delete the pattern in between. Those forms
-      // fall through and are rendered literally, as the doc comment promises.
-      if (this.peek() === '?' && this.src[this.pos + 1] === ':') {
-        this.pos += 2
+      // Non-capturing `(?:...)` and named `(?<name>...)` groups behave exactly
+      // like a plain group, so drop the prefix. Never scan ahead for a colon:
+      // the nearest one is usually a literal outside the group, and skipping to
+      // it would silently delete the pattern in between.
+      let zeroWidth = false
+      if (this.peek() === '?') {
+        const rest = this.src.slice(this.pos + 1)
+        const named = /^<[A-Za-z_$][\w$]*>/.exec(rest)
+        const lookaround = /^(?:=|!|<=|<!)/.exec(rest)
+        if (rest.startsWith(':')) this.pos += 2
+        else if (named) this.pos += 1 + named[0].length
+        else if (lookaround) {
+          this.pos += 1 + lookaround[0].length
+          zeroWidth = true
+        }
       }
       const inner = this.parseAlt()
       if (this.peek() === ')') this.pos++
-      return inner
+      return zeroWidth ? { kind: 'lit', value: '' } : inner
     }
     if (ch === '[') {
       this.pos++
@@ -161,14 +181,41 @@ class RegexParser {
     }
     if (ch === '\\') {
       this.pos++
-      const escaped = this.src[this.pos++] ?? ''
-      return { kind: 'class', pool: expandEscape(escaped) }
+      // Word boundaries are zero-width; emitting the letter breaks the match.
+      if (this.peek() === 'b' || this.peek() === 'B') {
+        this.pos++
+        return { kind: 'lit', value: '' }
+      }
+      return { kind: 'class', pool: this.readEscape(false) }
     }
     this.pos++
     return { kind: 'lit', value: ch ?? '' }
   }
 
+  /**
+   * Consume the escape after a backslash and return the characters it can
+   * stand for. `inClass` matters for `\b`, which is a backspace inside `[…]`.
+   */
+  private readEscape(inClass: boolean): string[] {
+    const ch = this.src[this.pos++] ?? ''
+    if (ch === 'b' && inClass) return ['\b']
+    if (ch === 'x' || ch === 'u') {
+      const rest = this.src.slice(this.pos)
+      const m =
+        ch === 'x'
+          ? /^[0-9a-fA-F]{2}/.exec(rest)
+          : (/^\{([0-9a-fA-F]+)\}/.exec(rest) ?? /^[0-9a-fA-F]{4}/.exec(rest))
+      if (m) {
+        this.pos += m[0].length
+        return [String.fromCodePoint(parseInt(m[1] ?? m[0], 16))]
+      }
+      // Without hex digits, `\x` / `\u` is the literal letter.
+    }
+    return expandEscape(ch)
+  }
+
   private parseCharClass(): string[] {
+    const start = this.pos
     let negate = false
     if (this.peek() === '^') {
       negate = true
@@ -178,7 +225,7 @@ class RegexParser {
     while (this.pos < this.src.length && this.peek() !== ']') {
       if (this.peek() === '\\') {
         this.pos++
-        pool.push(...expandEscape(this.src[this.pos++] ?? ''))
+        pool.push(...this.readEscape(true))
       } else if (
         this.src[this.pos + 1] === '-' &&
         this.src[this.pos + 2] &&
@@ -197,10 +244,20 @@ class RegexParser {
         if (ch !== undefined) pool.push(ch)
       }
     }
+    const body = this.src.slice(start, this.pos)
     if (this.peek() === ']') this.pos++
     if (negate) {
+      // Let the engine decide membership: the hand-written pools only
+      // approximate classes like `\W`, so a set difference over them can emit
+      // characters the class actually rejects.
+      let exact: RegExp | null = null
+      try {
+        exact = new RegExp(`^[${body}]$`)
+      } catch {
+        // Malformed class — fall back to the approximate pools below.
+      }
       const set = new Set(pool)
-      return ALL.filter((c) => !set.has(c))
+      return ALL.filter((c) => (exact ? exact.test(c) : !set.has(c)))
     }
     return pool.length > 0 ? pool : ['a']
   }
@@ -220,14 +277,14 @@ class RegexParser {
       return { min: 0, max: 1 }
     }
     if (ch === '{') {
-      const end = this.src.indexOf('}', this.pos)
-      if (end !== -1) {
-        const inner = this.src.slice(this.pos + 1, end)
-        this.pos = end + 1
+      // Only `{n}`, `{n,}` and `{n,m}` are quantifiers. Anything else (`{,3}`,
+      // `{a}`) is literal text in a JS regex, so leave it for parseAtom.
+      const m = /^\{(\d+)(?:(,)(\d*))?\}/.exec(this.src.slice(this.pos))
+      if (m) {
+        this.pos += m[0].length
         if (this.peek() === '?') this.pos++ // lazy — ignore
-        const parts = inner.split(',')
-        const lo = parseInt(parts[0] ?? '1', 10)
-        const hi = parts.length > 1 ? (parts[1] ? parseInt(parts[1], 10) : lo + 4) : lo
+        const lo = Number(m[1])
+        const hi = m[2] === undefined ? lo : m[3] ? Number(m[3]) : lo + 4
         return { min: lo, max: Math.min(hi, lo + 10) }
       }
     }

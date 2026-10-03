@@ -94,3 +94,33 @@ describe('generateFromRegex unsupported (?…) groups', () => {
     }
   })
 })
+
+describe('fromRegExp covers escapes, boundaries and group forms', () => {
+  const patterns: readonly RegExp[] = [
+    /\bfoo\b/,
+    /\x41{2}/,
+    /\u0041\u{42}/u,
+    /[\b]/,
+    /(?<year>\d{4})-(?<mm>\d{2})/,
+    /a{,3}/,
+    /a{2,}/,
+    /[^\W]/,
+    /[^\S]/,
+    /[^\w\s!@#$%^&*()+-]/,
+  ]
+
+  for (const re of patterns) {
+    it(`emits strings matching ${String(re)}`, () => {
+      for (let seed = 0; seed < SEEDS; seed++) {
+        const out = gen(re, seed)
+        expect(re.test(out), `seed ${String(seed)}: ${JSON.stringify(out)}`).toBe(true)
+      }
+    })
+  }
+
+  it('drops lookaround assertions instead of rendering them literally', () => {
+    for (let seed = 0; seed < 50; seed++) {
+      expect(gen(/x(?=y)(?!z)(?<=x)(?<!w)/, seed)).toBe('x')
+    }
+  })
+})
