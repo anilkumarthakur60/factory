@@ -1,0 +1,122 @@
+{
+  "name": "@anil-labs/factory",
+  "version": "0.1.0",
+  "description": "Laravel-inspired model factory + faceted faker for TypeScript. Seedable, locale-aware, framework-agnostic, zero runtime deps.",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "Anil Kumar Thakur",
+    "url": "https://github.com/anilkumarthakur60"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anilkumarthakur60/factory.git",
+    "directory": "packages/factory"
+  },
+  "homepage": "https://github.com/anilkumarthakur60/factory/tree/main/packages/factory#readme",
+  "bugs": {
+    "url": "https://github.com/anilkumarthakur60/factory/issues"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/index.global.js",
+  "jsdelivr": "./dist/index.global.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "default": "./dist/index.js"
+    },
+    "./faker": {
+      "import": {
+        "types": "./dist/faker.d.ts",
+        "default": "./dist/faker.js"
+      },
+      "require": {
+        "types": "./dist/faker.d.cts",
+        "default": "./dist/faker.cjs"
+      },
+      "default": "./dist/faker.js"
+    },
+    "./persist": {
+      "import": {
+        "types": "./dist/persist.d.ts",
+        "default": "./dist/persist.js"
+      },
+      "require": {
+        "types": "./dist/persist.d.cts",
+        "default": "./dist/persist.cjs"
+      },
+      "default": "./dist/persist.js"
+    },
+    "./locales/en": {
+      "import": {
+        "types": "./dist/locales/en.d.ts",
+        "default": "./dist/locales/en.js"
+      },
+      "require": {
+        "types": "./dist/locales/en.d.cts",
+        "default": "./dist/locales/en.cjs"
+      },
+      "default": "./dist/locales/en.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist coverage",
+    "build": "tsup && node scripts/check-dist.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "verify": "pnpm run typecheck && pnpm run lint && pnpm run test"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "factory",
+    "faker",
+    "test-data",
+    "laravel",
+    "eloquent",
+    "seeder",
+    "mock",
+    "typescript",
+    "fixtures",
+    "seedable",
+    "locale",
+    "esm",
+    "cjs",
+    "isomorphic",
+    "browser",
+    "node",
+    "bun",
+    "deno"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
+}

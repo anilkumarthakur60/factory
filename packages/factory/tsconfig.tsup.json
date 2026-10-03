@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // tsup injects a `baseUrl` when the tsconfig declares `paths`, which
+    // TypeScript 6 reports as TS5101 and fails the dts build on. We only need
+    // it for the `@/*` aliases during declaration emit.
+    "ignoreDeprecations": "6.0",
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
