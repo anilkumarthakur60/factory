@@ -1,6 +1,6 @@
 {
   "name": "@anil-labs/factory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Laravel-inspired model factory + faceted faker for TypeScript. Seedable, locale-aware, framework-agnostic, zero runtime deps.",
   "type": "module",
   "license": "MIT",
