@@ -166,7 +166,7 @@ You can also use the static form: `Factory.define<T>(definition, persist?)`.
 | ----------------------------------------- | ------------ | --------------------------------------------------------------------------------------- |
 | `.count(n)`                               | `Factory<T>` | Set how many items to build. Alias: `.times(n)`.                                        |
 | `.with(overrides)`                        | `Factory<T>` | Merge overrides into every built item.                                                  |
-| `.state(name, value)`                     | `Factory<T>` | Register a named state  `value` may be a partial OR `(item, ctx) => partial`.          |
+| `.state(name, value)`                     | `Factory<T>` | Register a named state `value` may be a partial OR `(item, ctx) => partial`.            |
 | `.state(name)`                            | `Factory<T>` | Activate a registered state.                                                            |
 | `.state(sequenceInstance)`                | `Factory<T>` | Attach a sequence as state.                                                             |
 | `.states({ a: …, b: … })`                 | `Factory<T>` | Bulk-register states.                                                                   |
@@ -294,9 +294,7 @@ UserFactory.persist(store).create()
 
 UserFactory.persist(
   httpPersist<User>('/api/users', {
-    headers: {
-      /* … */
-    },
+    headers: {/* … */},
   }),
 )
 

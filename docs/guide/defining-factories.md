@@ -20,8 +20,8 @@ const PostFactory = defineFactory<Post>(({ seq, faker }) => ({
 
 The build context `{ seq, faker }` is passed on every build call:
 
-- `seq`  1-indexed counter, incremented across `count(n)` builds.
-- `faker`  the factory's bound `Faker` instance (private if you called `.seed()` / `.locale()`, shared global otherwise).
+- `seq` 1-indexed counter, incremented across `count(n)` builds.
+- `faker` the factory's bound `Faker` instance (private if you called `.seed()` / `.locale()`, shared global otherwise).
 
 ## Inline overrides
 
@@ -44,6 +44,6 @@ PostFactory.makeOne() // always one Post, ignores count
 
 ## Raw vs make
 
-`raw()` is identical to `make()` today  included for forward-compat parity with Laravel's API, where it returns plain attribute objects before model hydration.
+`raw()` is identical to `make()` today included for forward-compat parity with Laravel's API, where it returns plain attribute objects before model hydration.
 
 → [States & sequences](/guide/states-sequences)

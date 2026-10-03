@@ -38,8 +38,7 @@ export interface HasAttachedRelation<P, C> {
   readonly key: keyof P | string
   readonly kind: 'hasAttached'
   readonly pivot:
-    | Partial<Record<string, unknown>>
-    | ((parent: P, child: C) => Record<string, unknown>)
+    Partial<Record<string, unknown>> | ((parent: P, child: C) => Record<string, unknown>)
 }
 
 /** Pool of recyclable model instances, keyed by an arbitrary string. */
