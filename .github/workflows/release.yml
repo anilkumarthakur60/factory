@@ -38,7 +38,7 @@ jobs:
       # token (`id-token: write` above) for a short-lived npm token and attaches
       # provenance, so no NPM_TOKEN secret is stored. The trust is configured on
       # npm with `npm trust github @anil-labs/factory --repo
-      # anilkumarthakur60/factory --file release.yml`.
+      # anilkumarthakur60/factory --file release.yml --allow-publish`.
       - name: Create release PR or publish
         # v2 of the action requires Changesets CLI v3; this repo is on CLI v2.
         # Move both together (v2 renames the inputs to version-script/publish-script).
