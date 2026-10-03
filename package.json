@@ -23,7 +23,7 @@
     "test": "pnpm --filter @anil-labs/factory run test",
     "test:watch": "pnpm --filter @anil-labs/factory run test:watch",
     "test:coverage": "pnpm --filter @anil-labs/factory run test:coverage",
-    "typecheck": "pnpm -r run typecheck",
+    "typecheck": "pnpm run build && pnpm -r run typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -48,7 +48,7 @@
     "typescript-eslint": "^8.64.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.13"
   },
   "packageManager": "pnpm@11.15.0"
 }

@@ -26,6 +26,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # The examples resolve @anil-labs/factory through its built dist/ (that is
+      # their point), so they cannot typecheck until the package is built.
+      - name: Build package
+        run: pnpm run build
+
       - name: Typecheck
         run: pnpm run typecheck
 
@@ -51,16 +56,25 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      # pnpm 11 itself needs Node >= 22.13, so install on 22 and only then
+      # switch to the Node version under test. Tests run vitest directly
+      # rather than through pnpm for the same reason.
+      - name: Setup Node.js 22 (for pnpm)
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
       - name: Run tests with coverage
-        run: pnpm run test:coverage
+        working-directory: packages/factory
+        run: ./node_modules/.bin/vitest run --coverage
 
       - name: Upload coverage
         if: matrix.node-version == 22
