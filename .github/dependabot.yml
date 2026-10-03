@@ -71,6 +71,11 @@ updates:
     commit-message:
       prefix: ci
       include: scope
+    ignore:
+      # changesets/action v2 only works with @changesets/cli v3. Bump them
+      # together by hand rather than letting this group break the release.
+      - dependency-name: changesets/action
+        update-types: ['version-update:semver-major']
     groups:
       actions:
         patterns:
