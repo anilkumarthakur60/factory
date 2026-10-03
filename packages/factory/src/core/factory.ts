@@ -1,6 +1,7 @@
 import { Faker, faker as defaultFaker } from '@/faker'
 import type { FakerOptions } from '@/faker'
-import { withFaker } from '@/faker/context'
+import { currentFaker, withFaker } from '@/faker/context'
+import { LocaleRef } from '@/faker/locale'
 import { isLazy } from '@/builders'
 import { Collection } from './collection'
 import { Sequence } from './sequence'
@@ -25,16 +26,19 @@ interface InternalState<T extends object> {
   afterCreating: Hook<T>[]
   afterMaking: Hook<T>[]
   count: number
-  faker: Faker
   fieldSequences: Map<keyof T | string, readonly unknown[]>
   hasAttachedRelations: HasAttachedRelation<T, object>[]
   hasRelations: HasRelation<T, object>[]
   /** Locale requested via `locale()`, or null for the Faker default. */
   localeName: string | null
   overrides: Partial<T>
-  ownsFaker: boolean
   persist: Persist<T> | null
   recycle: Map<string, readonly object[]>
+  /**
+   * Anchor for relative `date.*` helpers requested via `refDate()`, or null to
+   * inherit the default faker's pin (if any) at build time.
+   */
+  refDateValue: number | null
   /**
    * Seed requested via `seed()`, or null when the factory is unseeded.
    * Tracked separately because `Faker.currentSeed()` reports the *drifting*
@@ -43,6 +47,16 @@ interface InternalState<T extends object> {
   seedValue: number | null
   sequences: Sequence<T>[]
   states: Map<string, StateValue<T>>
+}
+
+/**
+ * State shared by one top-level terminal call and every child factory its
+ * relations build. Each relation gets one faker for the whole call, so a seeded
+ * child draws a fresh stretch of its stream for every parent item instead of
+ * restarting at its seed and handing every parent identical children.
+ */
+interface BuildSession {
+  readonly fakers: Map<object, Faker>
 }
 
 /**
@@ -85,7 +99,6 @@ export class Factory<T extends object> {
   /** Create a new factory. Mirrors Laravel's `Factory::new()`. */
   static define<T extends object>(definition: Definition<T>, persist?: Persist<T>): Factory<T> {
     return new Factory(definition, {
-      faker: defaultFaker,
       count: 1,
       overrides: {},
       states: new Map(),
@@ -98,16 +111,15 @@ export class Factory<T extends object> {
       hasAttachedRelations: [],
       recycle: new Map(),
       persist: persist ?? null,
-      ownsFaker: false,
       seedValue: null,
       localeName: null,
+      refDateValue: null,
     })
   }
 
   /** Internal: build a copy with a single field replaced. */
   private clone(patch: Partial<InternalState<T>>): Factory<T> {
     const next: InternalState<T> = {
-      faker: this.internals.faker,
       count: this.internals.count,
       overrides: this.internals.overrides,
       states: new Map(this.internals.states),
@@ -120,27 +132,41 @@ export class Factory<T extends object> {
       hasAttachedRelations: [...this.internals.hasAttachedRelations],
       recycle: new Map(this.internals.recycle),
       persist: this.internals.persist,
-      ownsFaker: this.internals.ownsFaker,
       seedValue: this.internals.seedValue,
       localeName: this.internals.localeName,
+      refDateValue: this.internals.refDateValue,
       ...patch,
     }
     return new Factory(this.definition, next)
   }
 
   /**
-   * Mint a private Faker from the tracked seed/locale pair. Always a fresh
-   * instance: a Faker carries mutable PRNG *and* locale state, so handing an
-   * existing one to a derived factory would let the derived factory's
-   * `locale()` retro-actively rewrite the factory it came from.
+   * The faker one terminal call draws from. Factories never hold a live Faker:
+   * a Faker carries mutable PRNG, locale and anchor state, so sharing one
+   * between clones (or rewinding it per build) lets one factory's build or
+   * `locale()` leak into another's output.
+   *
+   *   - Seeded: a fresh instance at the seed, so every call reproduces.
+   *   - Unseeded but customised: forked from the default faker, so
+   *     `faker.seed(n)` still makes the factory reproducible.
+   *   - Neither: the default faker itself.
    */
-  private privateFaker(seed: number | null, locale: string | null): Faker {
-    // exactOptionalPropertyTypes: omit the keys rather than pass undefined,
-    // so Faker applies its own defaults (time-based seed, locale "en").
-    const opts: FakerOptions = {}
-    if (seed !== null) opts.seed = seed
-    if (locale !== null) opts.locale = locale
-    return new Faker(opts)
+  private mintFaker(): Faker {
+    const { seedValue, localeName, refDateValue } = this.internals
+    if (seedValue !== null) {
+      // exactOptionalPropertyTypes: omit the keys rather than pass undefined.
+      const opts: FakerOptions = { seed: seedValue }
+      if (localeName !== null) opts.locale = localeName
+      const refDate = refDateValue ?? defaultFaker.currentRefDate()
+      if (refDate !== null) opts.refDate = refDate
+      return new Faker(opts)
+    }
+    if (localeName === null && refDateValue === null) return defaultFaker
+    // fork() carries the default faker's refDate pin across.
+    const forked = defaultFaker.fork()
+    if (localeName !== null) forked.locale(localeName)
+    if (refDateValue !== null) forked.refDate(refDateValue)
+    return forked
   }
 
   // -------------------------------------------------------------------------
@@ -316,7 +342,10 @@ export class Factory<T extends object> {
   getRecycled(key: string): object | undefined {
     const pool = this.internals.recycle.get(key)
     if (!pool || pool.length === 0) return undefined
-    const idx = this.internals.faker.rawPrng().int(0, pool.length - 1)
+    // Inside a build, draw from that build's faker so seeded output reproduces.
+    const idx = currentFaker()
+      .rawPrng()
+      .int(0, pool.length - 1)
     return pool[idx]
   }
 
@@ -348,32 +377,35 @@ export class Factory<T extends object> {
    * Useful when one factory in a suite must be deterministic without
    * affecting the shared default faker.
    *
-   * The seed is re-applied at the start of every terminal call, so a seeded
-   * factory reproduces on repeat builds and across sibling clones rather than
-   * handing each one whatever PRNG state the previous build left behind.
-   * Any locale already chosen in the chain is preserved.
+   * Every terminal call starts from the seed, so a seeded factory reproduces
+   * on repeat builds and across sibling clones rather than handing each one
+   * whatever PRNG state the previous build left behind. Any locale already
+   * chosen in the chain is preserved.
    */
   seed(seed: number): Factory<T> {
-    return this.clone({
-      faker: this.privateFaker(seed, this.internals.localeName),
-      ownsFaker: true,
-      seedValue: seed,
-    })
+    return this.clone({ seedValue: seed })
   }
 
   /**
-   * Set the locale for this factory's data. Returns a factory with its own
-   * private, freshly built `Faker` — the source factory and any sibling
-   * clones keep the locale they were built with. Any seed already set in the
-   * chain is preserved, so `.locale(l).seed(n)` and `.seed(n).locale(l)`
-   * describe the same factory.
+   * Set the locale for this factory's data. The source factory and any
+   * sibling clones keep their own locale. Any seed already set in the chain is
+   * preserved, so `.locale(l).seed(n)` and `.seed(n).locale(l)` describe the
+   * same factory. An unseeded factory still follows the default faker's seed.
+   * Throws at chain time if `name` is not a registered locale.
    */
   locale(name: string): Factory<T> {
-    return this.clone({
-      faker: this.privateFaker(this.internals.seedValue, name),
-      ownsFaker: true,
-      localeName: name,
-    })
+    new LocaleRef(name) // validate now rather than at the first build
+    return this.clone({ localeName: name })
+  }
+
+  /**
+   * Pin the anchor used by relative `date.*` helpers for this factory's data,
+   * so seeded dates reproduce across runs. Without it the factory inherits
+   * the default faker's pin (`faker.refDate(...)`), or the wall clock if none.
+   * Pass `null` to go back to inheriting.
+   */
+  refDate(d: Date | number | null): Factory<T> {
+    return this.clone({ refDateValue: d === null ? null : typeof d === 'number' ? d : d.getTime() })
   }
 
   // -------------------------------------------------------------------------
@@ -382,14 +414,15 @@ export class Factory<T extends object> {
 
   /** Build a single item (ignoring `count`). */
   makeOne(): T {
-    const item = this.buildOne(0, this.beginBuild())
+    const [item] = this.buildItems(1)
+    if (item === undefined) throw new Error('[Factory] unreachable: makeOne() built nothing')
     this.fireAfterMakingSync([item])
     return item
   }
 
   /** Build `count` items. */
   makeMany(): T[] {
-    const items = this.buildMany()
+    const items = this.buildItems(this.internals.count)
     this.fireAfterMakingSync(items)
     return items
   }
@@ -423,7 +456,7 @@ export class Factory<T extends object> {
         '[Factory] create(): no persistence callback registered. Use .persist(fn) or pass one to defineFactory().',
       )
     }
-    const items = this.buildMany()
+    const items = this.buildItems(this.internals.count)
     await this.runHooks(items, this.internals.afterMaking)
     const persisted = await Promise.all(items.map((item) => Promise.resolve(persist(item))))
     await this.runHooks(persisted, this.internals.afterCreating)
@@ -441,32 +474,52 @@ export class Factory<T extends object> {
   // -------------------------------------------------------------------------
 
   /**
-   * Prepare the mutable state a single terminal call consumes, and return the
-   * sequence cursors to draw from.
+   * Build `count` items for one terminal call. A top-level call starts a new
+   * session; a relation passes its parent's session plus a key identifying
+   * the relation, and reuses the faker stored under that key.
    *
-   * Both halves exist to keep a terminal call from mutating its receiver: the
-   * PRNG is rewound so a seeded factory yields the same data on every call and
-   * in every clone that shares the instance, and sequences are drawn from
-   * throwaway copies so `.makeMany()` twice does not continue where it left off.
+   * Sequences are drawn from throwaway copies so `.makeMany()` twice does not
+   * continue where the previous call left off.
    */
-  private beginBuild(): Sequence<T>[] {
-    const { faker, ownsFaker, seedValue } = this.internals
-    // Only rewind a factory that asked to be deterministic — reseeding an
-    // unseeded one would turn every build into the same "random" data.
-    if (ownsFaker && seedValue !== null) faker.seed(seedValue)
-    return this.internals.sequences.map((s) => s.clone())
+  private buildItems(
+    count: number,
+    parent: BuildSession | null = null,
+    key: object | null = null,
+  ): T[] {
+    const session: BuildSession = parent ?? { fakers: new Map() }
+    let faker = key === null ? undefined : session.fakers.get(key)
+    if (faker === undefined) {
+      faker = this.mintFaker()
+      if (key !== null) session.fakers.set(key, faker)
+    }
+    const sequences = this.internals.sequences.map((s) => s.clone())
+    const out: T[] = []
+    for (let i = 0; i < count; i++) out.push(this.buildOne(i, sequences, faker, session))
+    return out
   }
 
-  private buildOne(index: number, sequences: readonly Sequence<T>[]): T {
+  /** Build a relation's children inside a parent's session, firing their hooks. */
+  private buildRelated(count: number, session: BuildSession, key: object): T[] {
+    const items = this.buildItems(count, session, key)
+    this.fireAfterMakingSync(items)
+    return items
+  }
+
+  private buildOne(
+    index: number,
+    sequences: readonly Sequence<T>[],
+    faker: Faker,
+    session: BuildSession,
+  ): T {
     const seq = index + 1
-    const ctx: BuildContext = { seq, faker: this.internals.faker }
+    const ctx: BuildContext = { seq, faker }
 
     // Install this factory's faker for the whole pass so builder helpers
     // (`oneOf`, `maybe`, `array`) — which take no arguments and so cannot
     // reach `ctx` — resolve against it instead of the shared default
     // singleton. Without this, `seed()` would leave them non-reproducible.
     // Child factories built by relations below nest and restore correctly.
-    return withFaker(this.internals.faker, () => {
+    return withFaker(faker, () => {
       let item = this.definition(ctx)
 
       for (const stateName of this.internals.activeStates) {
@@ -493,14 +546,12 @@ export class Factory<T extends object> {
       item = resolveLazyFields(item)
 
       for (const rel of this.internals.hasRelations) {
-        const children = rel.factory.count(rel.count).make()
-        const arr = Array.isArray(children) ? children : [children]
+        const arr = asFactory(rel.factory).buildRelated(rel.count, session, rel)
         item = { ...item, [rel.key as string]: arr }
       }
 
       for (const rel of this.internals.hasAttachedRelations) {
-        const children = rel.factory.count(rel.count).make()
-        const arr = Array.isArray(children) ? children : [children]
+        const arr = asFactory(rel.factory).buildRelated(rel.count, session, rel)
         const withPivot = arr.map((child: object) => {
           const pivotData = typeof rel.pivot === 'function' ? rel.pivot(item, child) : rel.pivot
           return { ...child, pivot: pivotData }
@@ -510,13 +561,6 @@ export class Factory<T extends object> {
 
       return item
     })
-  }
-
-  private buildMany(): T[] {
-    const sequences = this.beginBuild()
-    const out: T[] = []
-    for (let i = 0; i < this.internals.count; i++) out.push(this.buildOne(i, sequences))
-    return out
   }
 
   /**
@@ -542,6 +586,14 @@ export class Factory<T extends object> {
       for (const hook of hooks) await hook(item, i)
     }
   }
+}
+
+/**
+ * Relations store their child factory under a structural type (see
+ * `HasRelation`), but `has()` / `hasAttached()` only ever accept a `Factory`.
+ */
+function asFactory(f: unknown): Factory<object> {
+  return f as Factory<object>
 }
 
 /**

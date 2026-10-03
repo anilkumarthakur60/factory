@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { defineFactory } from '@/core/factory'
 import { sequence } from '@/core/sequence'
 import { lazy } from '@/builders'
-import { en, registerLocale } from '@/faker'
+import { en, faker, registerLocale } from '@/faker'
 
 interface Row {
   id: number
@@ -245,5 +245,75 @@ describe('has() / hasAttached() widen the built type', () => {
     const tags: (Post & { pivot: Record<string, unknown> })[] = user.tags
     expect(tags).toHaveLength(2)
     expect(tags[0]?.pivot).toEqual({ active: true })
+  })
+})
+
+describe('seeded factories inside relations', () => {
+  interface Post {
+    title: string
+  }
+  const postFactory = () => defineFactory<Post>(({ faker }) => ({ title: faker.lorem.word() }))
+
+  it('gives each parent different children from a seeded child factory', () => {
+    const users = makeRowFactory()
+      .seed(1)
+      .has(postFactory().seed(7).count(2), 'posts')
+      .count(3)
+      .makeMany()
+    const titles = users.map((u) => JSON.stringify(u.posts))
+    expect(new Set(titles).size).toBe(3)
+  })
+
+  it('stays reproducible across terminal calls', () => {
+    const f = makeRowFactory().seed(1).has(postFactory().seed(7).count(2), 'posts').count(3)
+    expect(f.makeMany()).toEqual(f.makeMany())
+  })
+
+  it('does not let a child clone corrupt its parent clone', () => {
+    const base = makeRowFactory().seed(42)
+    const rows = base.has(base.count(1), 'kids').count(3).makeMany()
+    expect(rows.map((r) => r.name)).toEqual(
+      base
+        .count(3)
+        .makeMany()
+        .map((r) => r.name),
+    )
+  })
+})
+
+describe('unseeded factories follow the default faker', () => {
+  it('locale() keeps an unseeded factory reproducible under faker.seed()', () => {
+    const f = makeRowFactory().locale('en').count(5)
+    faker.seed(42)
+    const first = f.makeMany()
+    faker.seed(42)
+    expect(f.makeMany()).toEqual(first)
+  })
+})
+
+describe('refDate() pins dates for factories', () => {
+  interface Dated {
+    at: string
+  }
+  const datedFactory = () =>
+    defineFactory<Dated>(({ faker }) => ({ at: faker.date.past().toISOString() }))
+  const pin = Date.UTC(2024, 0, 1)
+
+  it('pins via the factory chain', () => {
+    const a = datedFactory().seed(1).refDate(pin).makeOne()
+    const b = datedFactory().seed(1).refDate(new Date(pin)).makeOne()
+    expect(a).toEqual(b)
+    expect(Date.parse(a.at)).toBeLessThan(pin)
+  })
+
+  it('inherits the default faker pin', () => {
+    faker.refDate(pin)
+    try {
+      expect(datedFactory().seed(1).makeOne()).toEqual(
+        datedFactory().seed(1).refDate(pin).makeOne(),
+      )
+    } finally {
+      faker.refDate(null)
+    }
   })
 })
