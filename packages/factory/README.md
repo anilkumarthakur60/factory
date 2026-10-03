@@ -255,7 +255,7 @@ Namespaces (all read from the shared PRNG + locale):
 | `company`  | `name`, `jobTitle`, `buzzPhrase`                                                                                                                                                  |
 | `commerce` | `productName`, `department`, `price(min, max, dec)`, `productDescription`                                                                                                         |
 | `finance`  | `amount(min, max, dec, symbol)`, `accountNumber(digits)`, `creditCardNumber` (Luhn-valid), `currencyCode`, `iban(cc, len)`, `bitcoinAddress`                                      |
-| `image`    | `url(w, h)`, `avatar(name)`, `dataUri(w, h)`                                                                                                                                      |
+| `image`    | `url(w, h)`, `avatar(name)`, `dataUri()`                                                                                                                                          |
 | `system`   | `fileName({withExt})`, `commonFileExt`, `fileExt`, `mimeType`, `directoryPath`, `filePath`, `semver`                                                                              |
 | `datatype` | `boolean(chance)`                                                                                                                                                                 |
 | `helpers`  | `arrayElement`, `arrayElements(arr, count)`, `shuffle`, `weightedArrayElement`, `multiple(n, fn)`, `repeat`, `fromRegExp`, `unique(fn, n, opts)`, `enumValue`, `maybe(v, chance)` |
