@@ -1,7 +1,7 @@
 /**
  * Pseudo-random number generator interface.
  *
- * All randomness in the package flows through this single contract — swap
+ * All randomness in the package flows through this single contract  swap
  * the implementation (`Mulberry32`, `Sfc32`, an external PRNG) without
  * touching any consumer code.
  */
@@ -18,7 +18,7 @@ export interface Prng {
   /** Integer in `[min, max]` inclusive. */
   int(min: number, max: number): number
 
-  /** Float in `[0, 1)` — the primitive every other method derives from. */
+  /** Float in `[0, 1)`  the primitive every other method derives from. */
   next(): number
 
   /** Pick a random element from a non-empty array. */

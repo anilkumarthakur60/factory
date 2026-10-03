@@ -88,7 +88,7 @@ export class Collection<T> implements Iterable<T> {
     return this.items.reduce(fn, initial)
   }
 
-  /** Plain-array view (a copy — the collection's storage is frozen). */
+  /** Plain-array view (a copy  the collection's storage is frozen). */
   toArray(): T[] {
     return [...this.items]
   }

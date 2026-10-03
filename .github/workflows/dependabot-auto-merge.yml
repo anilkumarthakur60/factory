@@ -1,6 +1,14 @@
-name: Dependabot Auto-Merge
+name: Dependabot auto-merge
 
-on: pull_request_target
+# Runs after CI finishes on a Dependabot PR and merges it if CI passed.
+# Patch and minor updates only; major updates are left open for manual review.
+#
+# Merging here (instead of `gh pr merge --auto`) avoids needing branch
+# protection with required status checks on the default branch.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
 
 permissions:
   contents: write
@@ -8,33 +16,35 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Auto-merge safe Dependabot PRs
+    name: Auto-merge
     runs-on: ubuntu-latest
-    # Only handle PRs raised by Dependabot itself.
-    if: github.actor == 'dependabot[bot]'
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'dependabot/')
     steps:
-      - name: Fetch Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Safe rule: patch + minor only. Majors hit CI but stay unmerged —
-      # a human reviews the changelog and merges manually.
-      - name: Enable auto-merge (squash) for patch + minor
-        if: |
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-minor'
-        run: gh pr merge --auto --squash "$PR_URL"
+      - name: Merge patch/minor Dependabot PR
         env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Comment on majors for visibility
-        if: steps.metadata.outputs.update-type == 'version-update:semver-major'
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          gh pr comment "$PR_URL" --body \
-            "👋 This is a **major** version bump — auto-merge is disabled by policy. Review the changelog before merging."
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pr=$(gh pr list -R "$REPO" --head "$BRANCH" --author app/dependabot --json number -q '.[0].number')
+          if [ -z "$pr" ]; then
+            echo "No open Dependabot PR for $BRANCH"
+            exit 0
+          fi
+
+          # Dependabot records the update type of each dependency in the commit message.
+          msg=$(gh api "repos/$REPO/commits/$SHA" -q .commit.message)
+          if ! grep -q 'update-type: version-update:semver-' <<<"$msg"; then
+            echo "No update-type metadata in commit; leaving PR #$pr for manual review"
+            exit 0
+          fi
+          if grep -q 'update-type: version-update:semver-major' <<<"$msg"; then
+            echo "Major update; leaving PR #$pr for manual review"
+            exit 0
+          fi
+
+          gh pr merge "$pr" -R "$REPO" --squash --match-head-commit "$SHA"

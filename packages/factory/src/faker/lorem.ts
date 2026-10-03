@@ -47,7 +47,7 @@ export class Lorem {
     return Array.from({ length: count }, () => this.paragraph()).join('\n\n')
   }
 
-  /** Alias of `paragraph()` — matches faker.js. */
+  /** Alias of `paragraph()`  matches faker.js. */
   text(): string {
     return this.paragraph()
   }

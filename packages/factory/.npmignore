@@ -1,4 +1,4 @@
-# NOTE: package.json `files` already acts as an allowlist — only `dist`,
+# NOTE: package.json `files` already acts as an allowlist  only `dist`,
 # `README.md`, `LICENSE`, `CHANGELOG.md` ship to npm. This `.npmignore` is
 # defence-in-depth: if the `files` field is ever removed, these patterns
 # keep the tarball clean.

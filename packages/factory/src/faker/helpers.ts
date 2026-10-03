@@ -14,7 +14,7 @@ export interface UniqueOptions {
 }
 
 /**
- * General helpers — operate on arbitrary inputs, not tied to any locale or
+ * General helpers  operate on arbitrary inputs, not tied to any locale or
  * faker namespace.
  *
  * @example

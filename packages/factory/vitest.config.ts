@@ -20,8 +20,8 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       include: ['src/**/*.ts'],
       // Exclude:
-      //  - barrels (`index.ts` files just re-export — no runtime to cover)
-      //  - type-only modules (`types.ts` — declarations don't emit JS)
+      //  - barrels (`index.ts` files just re-export  no runtime to cover)
+      //  - type-only modules (`types.ts`  declarations don't emit JS)
       //  - `.d.ts` and build output
       exclude: [
         'tests/**',
@@ -34,7 +34,7 @@ export default defineConfig({
       thresholds: {
         // Floor matches today's real numbers (rounded down with a 1-2% buffer
         // for natural drift between runs). Ratchet up whenever new tests land
-        // — never down. CI fails if we drop below.
+        //  never down. CI fails if we drop below.
         //
         // The remaining gaps are unreachable defensive guards (`if (x ===
         // undefined) continue` / `throw`) we added to remove non-null

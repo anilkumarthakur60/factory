@@ -6,7 +6,7 @@ export type { LocaleData } from '@/locales/types'
 
 export { generateFromRegex } from './regex'
 
-// Namespace classes — exported so consumers can subclass / mock individual
+// Namespace classes  exported so consumers can subclass / mock individual
 // areas (e.g. swap `Internet` for a deterministic test double).
 export { Person } from './person'
 export { Internet } from './internet'

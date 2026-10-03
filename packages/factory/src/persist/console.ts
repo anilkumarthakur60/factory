@@ -1,7 +1,7 @@
 import type { Persist } from '@/core/types'
 
 /**
- * Logging persistence — prints each item to the console and returns it
+ * Logging persistence  prints each item to the console and returns it
  * unchanged. Handy when wiring up a factory and you want to inspect what
  * `create()` would send before pointing it at a real backend.
  *
