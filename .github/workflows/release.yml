@@ -25,7 +25,6 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          registry-url: https://registry.npmjs.org
 
       - name: Install
         run: pnpm install --frozen-lockfile
@@ -34,6 +33,12 @@ jobs:
       # When that PR is merged (no changesets left) -> builds and publishes.
       # `pnpm release` is `pnpm build && changeset publish`, so dist/ is always
       # rebuilt immediately before publishing.
+      #
+      # Publishing uses npm trusted publishing: pnpm exchanges this job's OIDC
+      # token (`id-token: write` above) for a short-lived npm token and attaches
+      # provenance, so no NPM_TOKEN secret is stored. The trust is configured on
+      # npm with `npm trust github @anil-labs/factory --repo
+      # anilkumarthakur60/factory --file release.yml --allow-publish`.
       - name: Create release PR or publish
         # v2 of the action requires Changesets CLI v3; this repo is on CLI v2.
         # Move both together (v2 renames the inputs to version-script/publish-script).
@@ -43,6 +48,3 @@ jobs:
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: 'true'
