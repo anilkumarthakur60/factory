@@ -56,3 +56,19 @@ describe('Prng.float stays inside [min, max)', () => {
     }
   })
 })
+
+describe('Prng.float with reversed bounds', () => {
+  it('swaps them like int() instead of pinning every draw to min', () => {
+    const rng = new Mulberry32(2)
+    const draws = Array.from({ length: 500 }, () => rng.float(10, 0))
+    expect(Math.min(...draws)).toBeGreaterThanOrEqual(0)
+    expect(Math.max(...draws)).toBeLessThan(10)
+    expect(new Set(draws).size).toBeGreaterThan(100)
+  })
+
+  it('spreads number.float when only min is given above the default max', () => {
+    const f = new Faker({ seed: 3 })
+    const draws = Array.from({ length: 50 }, () => f.number.float({ min: 5 }))
+    expect(new Set(draws).size).toBeGreaterThan(1)
+  })
+})

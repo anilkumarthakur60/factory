@@ -37,6 +37,9 @@ export class Mulberry32 implements Prng {
   }
 
   float(min: number, max: number, decimals = 2): number {
+    // Accept reversed bounds like `int()` does. Without the swap every draw
+    // lands below the (larger) `min` and the clamp at the end pins it there.
+    if (max < min) [min, max] = [max, min]
     const v = this.next() * (max - min) + min
     const factor = 10 ** decimals
     // Truncate toward `min` rather than rounding half-up: half-up promotes any
