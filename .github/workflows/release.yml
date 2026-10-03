@@ -35,7 +35,9 @@ jobs:
       # `pnpm release` is `pnpm build && changeset publish`, so dist/ is always
       # rebuilt immediately before publishing.
       - name: Create release PR or publish
-        uses: changesets/action@v2
+        # v2 of the action requires Changesets CLI v3; this repo is on CLI v2.
+        # Move both together (v2 renames the inputs to version-script/publish-script).
+        uses: changesets/action@v1
         with:
           version: pnpm version-packages
           publish: pnpm release
