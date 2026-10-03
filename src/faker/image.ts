@@ -8,7 +8,7 @@ import type { Prng } from '@/prng/types'
  * ```ts
  * faker.image.url()                 // picsum.photos URL
  * faker.image.avatar()              // ui-avatars URL
- * faker.image.dataUri(64, 64)       // tiny embeddable PNG
+ * faker.image.dataUri()             // tiny embeddable PNG
  * ```
  */
 export class Image {
@@ -31,11 +31,8 @@ export class Image {
     return `https://ui-avatars.com/api/?${params.toString()}`
   }
 
-  /** Tiny single-color PNG data-uri  useful for testing inline-image flows. */
-  dataUri(_width = 1, _height = 1): string {
-    // Solid 1x1 PNG is a well-known constant  wider sizes use the same pixel
-    // for simplicity (the goal is a syntactically valid data-uri, not a
-    // rasterised image).
+  /** Tiny 1x1 PNG data-uri  useful for testing inline-image flows. */
+  dataUri(): string {
     return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
   }
 }

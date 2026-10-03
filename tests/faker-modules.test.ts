@@ -185,7 +185,6 @@ describe('faker.image', () => {
 
   it('dataUri returns a PNG data-uri', () => {
     expect(f.image.dataUri()).toMatch(/^data:image\/png;base64,/)
-    expect(f.image.dataUri(32, 32)).toMatch(/^data:image\/png;base64,/)
   })
 })
 
