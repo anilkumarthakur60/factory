@@ -32,12 +32,10 @@ export class Image {
   }
 
   /** Tiny single-color PNG data-uri  useful for testing inline-image flows. */
-  dataUri(width = 1, height = 1): string {
+  dataUri(_width = 1, _height = 1): string {
     // Solid 1x1 PNG is a well-known constant  wider sizes use the same pixel
     // for simplicity (the goal is a syntactically valid data-uri, not a
     // rasterised image).
-    void width
-    void height
     return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
   }
 }
