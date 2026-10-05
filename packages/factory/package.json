@@ -86,7 +86,7 @@
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run test"
   },
   "devDependencies": {
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "@vitest/coverage-v8": "^4.1.11",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
